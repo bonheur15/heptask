@@ -45,7 +45,7 @@ type ObjectListItemMap = {
   risks: RiskItem;
 };
 type ArrayField = {
-  [K in keyof ProjectPlan]: ProjectPlan[K] extends Array<unknown> ? K : never
+  [K in keyof ProjectPlan]: ProjectPlan[K] extends Array<unknown> ? K : never;
 }[keyof ProjectPlan];
 
 interface AiPlanProps {
@@ -87,7 +87,10 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
     );
   }
 
-  const updateField = <K extends keyof ProjectPlan>(field: K, value: ProjectPlan[K]) => {
+  const updateField = <K extends keyof ProjectPlan>(
+    field: K,
+    value: ProjectPlan[K],
+  ) => {
     if (!plan) return; // Should not happen after initial load
     setPlan((prev) => (prev ? { ...prev, [field]: value } : null));
   };
@@ -123,14 +126,29 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
     defaultValue: ProjectPlan[K] extends Array<infer U> ? U : never,
   ) => {
     if (!plan) return;
-    updateField(field, [...(plan[field] as ProjectPlan[K]), defaultValue]);
+
+    // The 'defaultValue' type parameter correctly infers the type of a single item 'U'
+    // from the array type 'ProjectPlan[K]'.
+    // To fix the diagnostic, we explicitly cast the 'plan[field]' array to be
+    // an array of 'typeof defaultValue'. This ensures that when the spread operator
+    // is used, TypeScript understands the consistent type of elements within the array.
+    const currentItems = plan[field] as Array<typeof defaultValue>;
+
+    // Create a new array by spreading the current items and adding the new defaultValue.
+    const updatedList = [...currentItems, defaultValue];
+
+    // Finally, update the field. We assert 'updatedList' back to 'ProjectPlan[K]'
+    // to match the exact expected type for the 'updateField' function.
+    updateField(field, updatedList as ProjectPlan[K]);
   };
 
   const removeItem = <K extends ArrayField>(field: K, index: number) => {
     if (!plan) return;
     updateField(
       field,
-      (plan[field] as ProjectPlan[K]).filter((_, i) => i !== index) as ProjectPlan[K],
+      (plan[field] as ProjectPlan[K]).filter(
+        (_, i) => i !== index,
+      ) as ProjectPlan[K],
     );
   };
   if (!plan) return null;
@@ -389,75 +407,77 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {plan.technicalSpecs.map((spec: TechnicalSpecItem, i: number) => (
-                    <div
-                      key={i}
-                      className="relative group space-y-2 p-3 rounded-lg border border-zinc-800 bg-zinc-900/50"
-                    >
-                      {isEditing && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-zinc-800 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeItem("technicalSpecs", i)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                      {isEditing ? (
-                        <>
-                          <Input
-                            value={spec.category}
-                            onChange={(e) =>
-                              handleObjectListItemChange(
-                                "technicalSpecs",
-                                i,
-                                "category",
-                                e.target.value,
-                              )
-                            }
-                            className="h-6 text-[9px] uppercase font-bold bg-transparent border-zinc-800"
-                          />
-                          <Input
-                            value={spec.tech}
-                            onChange={(e) =>
-                              handleObjectListItemChange(
-                                "technicalSpecs",
-                                i,
-                                "tech",
-                                e.target.value,
-                              )
-                            }
-                            className="h-7 text-sm font-bold bg-transparent border-zinc-800"
-                          />
-                          <Textarea
-                            value={spec.reason}
-                            onChange={(e) =>
-                              handleObjectListItemChange(
-                                "technicalSpecs",
-                                i,
-                                "reason",
-                                e.target.value,
-                              )
-                            }
-                            className="text-[10px] p-2 min-h-[40px] bg-transparent border-zinc-800"
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
-                            {spec.category}
-                          </p>
-                          <p className="text-sm font-bold text-zinc-200">
-                            {spec.tech}
-                          </p>
-                          <p className="text-[10px] text-zinc-400 leading-tight">
-                            {spec.reason}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  ))}
+                  {plan.technicalSpecs.map(
+                    (spec: TechnicalSpecItem, i: number) => (
+                      <div
+                        key={i}
+                        className="relative group space-y-2 p-3 rounded-lg border border-zinc-800 bg-zinc-900/50"
+                      >
+                        {isEditing && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-zinc-800 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeItem("technicalSpecs", i)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                        {isEditing ? (
+                          <>
+                            <Input
+                              value={spec.category}
+                              onChange={(e) =>
+                                handleObjectListItemChange(
+                                  "technicalSpecs",
+                                  i,
+                                  "category",
+                                  e.target.value,
+                                )
+                              }
+                              className="h-6 text-[9px] uppercase font-bold bg-transparent border-zinc-800"
+                            />
+                            <Input
+                              value={spec.tech}
+                              onChange={(e) =>
+                                handleObjectListItemChange(
+                                  "technicalSpecs",
+                                  i,
+                                  "tech",
+                                  e.target.value,
+                                )
+                              }
+                              className="h-7 text-sm font-bold bg-transparent border-zinc-800"
+                            />
+                            <Textarea
+                              value={spec.reason}
+                              onChange={(e) =>
+                                handleObjectListItemChange(
+                                  "technicalSpecs",
+                                  i,
+                                  "reason",
+                                  e.target.value,
+                                )
+                              }
+                              className="text-[10px] p-2 min-h-[40px] bg-transparent border-zinc-800"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
+                              {spec.category}
+                            </p>
+                            <p className="text-sm font-bold text-zinc-200">
+                              {spec.tech}
+                            </p>
+                            <p className="text-[10px] text-zinc-400 leading-tight">
+                              {spec.reason}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             )}
