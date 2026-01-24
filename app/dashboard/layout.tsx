@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "./_components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { User as UserType } from "@/lib/types";
 
 export default async function DashboardLayout({
   children,
@@ -24,9 +25,20 @@ export default async function DashboardLayout({
     return <RoleSelection />;
   }
 
+  const sidebarUser: UserType = {
+    ...session.user,
+    image: session.user.image ?? null,
+    role: session.user.role ?? null,
+    bio: session.user.bio ?? null,
+    skills: session.user.skills ?? null,
+    location: session.user.location ?? null,
+    website: session.user.website ?? null,
+    companyName: session.user.companyName ?? null,
+  };
+
   return (
     <SidebarProvider>
-      <AppSidebar user={session.user} />
+      <AppSidebar user={sidebarUser} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

@@ -27,8 +27,9 @@ export function BudgetDeadline({ plan, onNext, initialData }: BudgetDeadlineProp
 
   // AI Feasibility Logic for Deadline
   // Try to extract weeks from AI timeline string (e.g. "4-6 weeks")
-  const aiTimelineWeeks = plan?.timeline?.match(/(\d+)/)?.[1] || 4;
-  const minRecommendedDays = parseInt(aiTimelineWeeks) * 7;
+  const aiTimelineWeeksMatch = plan?.timeline?.match(/(\d+)/);
+  const aiTimelineWeeks = aiTimelineWeeksMatch ? aiTimelineWeeksMatch[1] : "4";
+  const minRecommendedDays = Number.parseInt(aiTimelineWeeks, 10) * 7;
   
   const daysUntilDeadline = date ? differenceInDays(date, new Date()) : null;
   const isAggressiveDeadline = daysUntilDeadline !== null && daysUntilDeadline < minRecommendedDays;

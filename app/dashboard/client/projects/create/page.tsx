@@ -120,7 +120,7 @@ export default function CreateProjectPage() {
           />
         )}
 
-        {currentStep === 4 && (
+        {currentStep === 4 && formData.plan && (
           <BudgetDeadline
             plan={formData.plan}
             initialData={{
@@ -134,7 +134,19 @@ export default function CreateProjectPage() {
           />
         )}
 
-        {currentStep === 5 && <Finalize data={formData} onBack={prevStep} />}
+        {currentStep === 5 && formData.plan && (
+          <Finalize
+            data={{
+              idea: formData.idea,
+              mode: formData.mode,
+              answers: formData.answers,
+              plan: formData.plan,
+              budget: formData.budget,
+              deadline: formData.deadline,
+            }}
+            onBack={prevStep}
+          />
+        )}
       </div>
 
       {/* Simple Navigation for Back (Internal to builder) */}

@@ -228,7 +228,7 @@ export default async function TalentDashboardPage() {
                             colSpan={4}
                             className="h-24 text-center text-zinc-500"
                           >
-                            You haven't applied to any jobs yet.
+                            You haven&apos;t applied to any jobs yet.
                           </TableCell>
                         </TableRow>
                       )}

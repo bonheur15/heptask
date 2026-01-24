@@ -7,7 +7,12 @@ import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
-import { Milestone } from "@/lib/types";
+export type ProposedMilestone = {
+  id: string;
+  title: string;
+  amount: string;
+  dueDate: Date | null;
+};
 
 export async function getJobDetails(projectId: string) {
   const session = await auth.api.getSession({
@@ -69,7 +74,7 @@ export async function submitApplication(data: {
   proposal: string;
   budget: string;
   timeline: string;
-  milestones?: Milestone[];
+  milestones?: ProposedMilestone[];
   links?: string;
 }) {
   const session = await auth.api.getSession({

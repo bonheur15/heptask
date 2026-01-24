@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Calendar, CheckCircle2, DollarSign, Star, User } from "lucide-react";
 import { ProfileForm } from "./_components/profile-form";
+import { User as UserType } from "@/lib/types";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -15,6 +16,16 @@ export default async function DashboardPage() {
 
   if (!session) return null;
   const { user } = session;
+  const normalizedUser: UserType = {
+    ...user,
+    image: user.image ?? null,
+    role: user.role ?? null,
+    bio: user.bio ?? null,
+    skills: user.skills ?? null,
+    location: user.location ?? null,
+    website: user.website ?? null,
+    companyName: user.companyName ?? null,
+  };
 
   // Mock data for the advanced profile view
   const stats = [
@@ -37,12 +48,12 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20 border-2 border-white shadow-sm dark:border-zinc-800">
-            <AvatarImage src={user.image || ""} />
-            <AvatarFallback className="text-xl">{user.name?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={normalizedUser.image || ""} />
+            <AvatarFallback className="text-xl">{normalizedUser.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{user.name}</h1>
-            <p className="text-zinc-500 dark:text-zinc-400 capitalize">{user.role} • Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{normalizedUser.name}</h1>
+            <p className="text-zinc-500 dark:text-zinc-400 capitalize">{normalizedUser.role} • Joined {new Date(normalizedUser.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
       </div>
@@ -115,7 +126,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                  {user.bio || "No bio provided yet. Add a bio to tell others about your skills and experience."}
+                  {normalizedUser.bio || "No bio provided yet. Add a bio to tell others about your skills and experience."}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">Next.js</Badge>
@@ -131,7 +142,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="flex items-center text-sm">
                     <User className="mr-2 h-4 w-4 text-zinc-400" />
-                    <span className="capitalize">{user.role} Account</span>
+                    <span className="capitalize">{normalizedUser.role} Account</span>
                   </div>
                 </div>
               </CardContent>
@@ -146,7 +157,7 @@ export default async function DashboardPage() {
               <CardDescription>Update your personal information and bio.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ProfileForm user={user} />
+              <ProfileForm user={normalizedUser} />
             </CardContent>
           </Card>
         </TabsContent>

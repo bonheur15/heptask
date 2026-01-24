@@ -43,7 +43,7 @@ export function GeneralProfile({ user }: { user: UserType }) {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-zinc-500" />
+            <UserIcon className="h-5 w-5 text-zinc-500" />
             <CardTitle>Basic Information</CardTitle>
           </div>
           <CardDescription>

@@ -18,6 +18,7 @@ import { Project as ProjectType, User as UserType } from "@/lib/types";
 
 export default async function BrowseJobsPage() {
   const jobs = await getAvailableJobs();
+  type JobWithClient = ProjectType & { client?: UserType | null };
 
   return (
     <div className="space-y-8 pb-10">
@@ -48,7 +49,7 @@ export default async function BrowseJobsPage() {
 
       {/* Jobs Grid */}
       <div className="grid gap-6">
-        {jobs.length > 0 ? jobs.map((job: ProjectType) => (
+        {jobs.length > 0 ? jobs.map((job: JobWithClient) => (
           <Card key={job.id} className="group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all overflow-hidden border-zinc-200 dark:border-zinc-800">
             <div className="flex flex-col md:flex-row">
               <div className="flex-1 p-6 space-y-4">

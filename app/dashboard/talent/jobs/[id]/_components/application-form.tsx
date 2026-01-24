@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { submitApplication } from "../_actions";
+import { submitApplication, ProposedMilestone } from "../_actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -27,15 +27,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { Milestone } from "@/lib/types";
 
 export function ApplicationForm({ projectId, initialBudget }: { projectId: string; initialBudget: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [proposal, setProposal] = useState("");
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [links, setLinks] = useState("");
-  const [milestones, setMilestones] = useState<Milestone[]>([
-    { id: "1", title: "Project Kickoff & Research", amount: "", dueDate: undefined }
+  const [milestones, setMilestones] = useState<ProposedMilestone[]>([
+    { id: "1", title: "Project Kickoff & Research", amount: "", dueDate: null }
   ]);
 
   const FEE_PERCENTAGE = 0.10; // 10% Platform fee
@@ -55,8 +54,8 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
     setMilestones([...milestones, { 
       id: Math.random().toString(36).substr(2, 9), 
       title: "", 
-      amount: "", 
-      dueDate: undefined 
+      amount: "",
+      dueDate: null
     }]);
   };
 
@@ -65,9 +64,13 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
     setMilestones(milestones.filter(m => m.id !== id));
   };
 
-  const updateMilestone = (id: string, field: keyof Milestone, value: any) => {
+  const updateMilestone = (
+    id: string,
+    field: keyof ProposedMilestone,
+    value: string | Date | null,
+  ) => {
     // If updating due date, ensure it's not after the project deadline
-    if (field === "dueDate" && value && deadline && value > deadline) {
+    if (field === "dueDate" && value instanceof Date && deadline && value > deadline) {
       toast.error("Milestone date cannot be after the project deadline.");
       return;
     }
@@ -205,7 +208,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                           setDeadline(date);
                           // Reset milestone dates if they now exceed the new deadline
                           setMilestones(prev => prev.map(m => 
-                            m.dueDate && date && m.dueDate > date ? { ...m, dueDate: undefined } : m
+                            m.dueDate && date && m.dueDate > date ? { ...m, dueDate: null } : m
                           ));
                         }}
                         disabled={(date) => date < new Date()}
@@ -318,8 +321,8 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                           <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
-                              selected={m.dueDate}
-                              onSelect={(date) => updateMilestone(m.id, "dueDate", date)}
+                              selected={m.dueDate ?? undefined}
+                              onSelect={(date) => updateMilestone(m.id, "dueDate", date ?? null)}
                               disabled={(date) => date < new Date() || (deadline ? date > deadline : false)}
                             />
                           </PopoverContent>

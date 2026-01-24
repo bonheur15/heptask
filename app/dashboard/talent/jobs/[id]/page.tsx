@@ -24,7 +24,7 @@ import { NdaGate } from "./_components/nda-gate";
 import { ApplicationForm } from "./_components/application-form";
 import { SubmittedProposal } from "./_components/submitted-proposal";
 import { Separator } from "@/components/ui/separator";
-import { Project, Applicant } from "@/lib/types";
+import { Applicant, Project, ProjectPlan } from "@/lib/types";
 
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -222,7 +222,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
             </div>
 
             {/* Application Section */}
-            {hasApplied ? (
+            {hasApplied && application ? (
               <section className="pt-10 scroll-mt-20">
                 <SubmittedProposal application={application} />
               </section>
