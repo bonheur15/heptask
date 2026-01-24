@@ -1,10 +1,10 @@
 import { createAuthClient } from "better-auth/react";
-import { emailAndPasswordClient } from "better-auth/plugins";
+import { emailPasswordClient } from "better-auth/plugins";
 
 export const authClient = createAuthClient({
   baseURL: process.env.BETTER_AUTH_URL,
   plugins: [
-    emailAndPasswordClient(),
+    emailPasswordClient(),
   ]
 });
 
