@@ -38,10 +38,10 @@ export function IdeaInput({ onNext, initialValue }: IdeaInputProps) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          What's your big idea?
+          What&apos;s your big idea?
         </h2>
         <p className="text-zinc-500 dark:text-zinc-400">
-          Describe what you want to build in your own words. Don't worry about
+          Describe what you want to build in your own words. Don&apos;t worry about
           technical terms.
         </p>
       </div>

@@ -14,9 +14,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Applicant } from "@/lib/types";
+import type { ProposedMilestone } from "../_actions";
 
 export function SubmittedProposal({ application }: { application: Applicant }) {
-  const milestones = JSON.parse(application.proposedMilestones || "[]");
+  const milestones: ProposedMilestone[] = application.proposedMilestones
+    ? (JSON.parse(application.proposedMilestones) as ProposedMilestone[])
+    : [];
   const isAccepted = application.status === "accepted";
   const isRejected = application.status === "rejected";
   const isPending = application.status === "pending";
@@ -106,7 +109,7 @@ export function SubmittedProposal({ application }: { application: Applicant }) {
               <Clock className="h-3.5 w-3.5" /> Proposed Milestones
             </div>
             <div className="space-y-3">
-              {milestones.map((m: any, index: number) => (
+              {milestones.map((m: ProposedMilestone, index: number) => (
                 <div key={index} className="flex gap-4 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 group hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
                   <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold shrink-0">
                     {index + 1}

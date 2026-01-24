@@ -35,10 +35,23 @@ import { Badge } from "@/components/ui/badge";
 import { AiModelId } from "@/lib/ai/models";
 import { ProjectPlan } from "@/lib/types";
 
+type MilestoneItem = ProjectPlan["milestones"][number];
+type TechnicalSpecItem = ProjectPlan["technicalSpecs"][number];
+type RiskItem = ProjectPlan["risks"][number];
+type ObjectListField = "milestones" | "technicalSpecs" | "risks";
+type ObjectListItemMap = {
+  milestones: MilestoneItem;
+  technicalSpecs: TechnicalSpecItem;
+  risks: RiskItem;
+};
+type ArrayField = {
+  [K in keyof ProjectPlan]: ProjectPlan[K] extends Array<unknown> ? K : never
+}[keyof ProjectPlan];
+
 interface AiPlanProps {
   idea: string;
   answers: Record<string, string>;
-  mode: string;
+  mode: "fast" | "advanced";
   modelId: AiModelId;
   onNext: (plan: ProjectPlan) => void;
 }
@@ -74,7 +87,7 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
     );
   }
 
-  const updateField = (field: keyof ProjectPlan, value: any) => {
+  const updateField = <K extends keyof ProjectPlan>(field: K, value: ProjectPlan[K]) => {
     if (!plan) return; // Should not happen after initial load
     setPlan((prev) => (prev ? { ...prev, [field]: value } : null));
   };
@@ -90,31 +103,37 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
     updateField(field, newList);
   };
 
-  const handleObjectListItemChange = (
-    field: "milestones" | "technicalSpecs" | "risks",
+  const handleObjectListItemChange = <
+    F extends ObjectListField,
+    K extends keyof ObjectListItemMap[F],
+  >(
+    field: F,
     index: number,
-    key: string,
-    value: string,
+    key: K,
+    value: ObjectListItemMap[F][K],
   ) => {
     if (!plan) return;
-    const newList: any[] = [...plan[field]];
+    const newList = [...plan[field]] as ObjectListItemMap[F][];
     newList[index] = { ...newList[index], [key]: value };
-    updateField(field, newList);
+    updateField(field, newList as ProjectPlan[F]);
   };
 
-  const addItem = (field: keyof ProjectPlan, defaultValue: any) => {
+  const addItem = <K extends ArrayField>(
+    field: K,
+    defaultValue: ProjectPlan[K] extends Array<infer U> ? U : never,
+  ) => {
     if (!plan) return;
-    updateField(field, [...(plan[field] as any[]), defaultValue]);
+    updateField(field, [...(plan[field] as ProjectPlan[K]), defaultValue]);
   };
 
-  const removeItem = (field: keyof ProjectPlan, index: number) => {
+  const removeItem = <K extends ArrayField>(field: K, index: number) => {
     if (!plan) return;
     updateField(
       field,
-      (plan[field] as any[]).filter((_: any, i: number) => i !== index),
+      (plan[field] as ProjectPlan[K]).filter((_, i) => i !== index) as ProjectPlan[K],
     );
   };
-  if (!plan) return;
+  if (!plan) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto pb-10">
@@ -240,7 +259,7 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
                   )}
                 </div>
                 <div className="space-y-4">
-                  {plan.milestones.map((m: any, i: number) => (
+                  {plan.milestones.map((m: MilestoneItem, i: number) => (
                     <div
                       key={i}
                       className="relative pl-6 border-l-2 border-zinc-100 dark:border-zinc-800 pb-4 last:pb-0"
@@ -347,7 +366,7 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
               <div className="p-6 rounded-2xl bg-zinc-950 text-zinc-50 space-y-6 animate-in fade-in slide-in-from-top-2 border shadow-2xl">
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-zinc-400 font-mono italic">
-                    // System Architecture Specs
+                    System Architecture Specs
                   </p>
                   <div className="flex gap-2">
                     {isEditing && (
@@ -370,7 +389,7 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {plan.technicalSpecs.map((spec: any, i: number) => (
+                  {plan.technicalSpecs.map((spec: TechnicalSpecItem, i: number) => (
                     <div
                       key={i}
                       className="relative group space-y-2 p-3 rounded-lg border border-zinc-800 bg-zinc-900/50"
@@ -466,7 +485,7 @@ export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
               )}
             </CardHeader>
             <CardContent className="space-y-4">
-              {plan.risks.map((r: any, i: number) => (
+              {plan.risks.map((r: RiskItem, i: number) => (
                 <div key={i} className="group relative space-y-1">
                   {isEditing ? (
                     <div className="space-y-2">

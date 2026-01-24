@@ -228,7 +228,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                       <span className="text-red-500 font-medium">-${platformFee.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="font-bold">You'll Receive</span>
+                      <span className="font-bold">You&apos;ll Receive</span>
                       <span className="text-xl font-bold text-emerald-600">${netEarnings.toFixed(2)}</span>
                     </div>
                   </div>

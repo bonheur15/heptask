@@ -40,7 +40,12 @@ export async function generateProjectQuestions(modelId: AiModelId, idea: string)
   return askGemini(modelId, PROJECT_INTERVIEW_PROMPT, `Project Idea: ${idea}`);
 }
 
-export async function generateProjectPlanDetails(modelId: AiModelId, idea: string, answers: any, mode: string) {
+export async function generateProjectPlanDetails(
+  modelId: AiModelId,
+  idea: string,
+  answers: Record<string, string>,
+  mode: "fast" | "advanced",
+) {
   const userContext = `
     Project Idea: ${idea}
     Process Mode: ${mode}

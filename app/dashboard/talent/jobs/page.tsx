@@ -105,7 +105,7 @@ export default async function BrowseJobsPage() {
                       <p className="text-[10px] text-zinc-400">Verified Client</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-zinc-500 italic">"Excellent communicator, paid 12 talents on time."</p>
+                  <p className="text-[10px] text-zinc-500 italic">&quot;Excellent communicator, paid 12 talents on time.&quot;</p>
                 </div>
                 
                 <Button className="w-full gap-2 rounded-full mt-4" asChild>
@@ -120,7 +120,7 @@ export default async function BrowseJobsPage() {
           <div className="flex flex-col items-center justify-center p-20 border-2 border-dashed rounded-3xl bg-zinc-50/30 dark:bg-zinc-900/10 text-center">
             <Search className="h-12 w-12 text-zinc-200 mb-4" />
             <h3 className="text-xl font-bold">No projects found</h3>
-            <p className="text-zinc-500 max-w-sm mt-2">We couldn't find any projects matching your current filters. Try broadening your search.</p>
+            <p className="text-zinc-500 max-w-sm mt-2">We couldn&apos;t find any projects matching your current filters. Try broadening your search.</p>
             <Button variant="outline" className="mt-6 rounded-full">Reset Filters</Button>
           </div>
         )}

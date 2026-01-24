@@ -26,6 +26,10 @@ import { SubmittedProposal } from "./_components/submitted-proposal";
 import { Separator } from "@/components/ui/separator";
 import { Applicant, Project, ProjectPlan } from "@/lib/types";
 
+type MilestoneItem = ProjectPlan["milestones"][number];
+type TechnicalSpecItem = ProjectPlan["technicalSpecs"][number];
+type RiskItem = ProjectPlan["risks"][number];
+
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { job, ndaSigned, hasApplied, application } = await getJobDetails(id);
@@ -100,9 +104,9 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
               <Card className="border-none shadow-sm bg-zinc-50/30 dark:bg-zinc-900/20">
                 <CardContent className="p-8 space-y-6">
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Client's Description</h4>
+                    <h4 className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Client&apos;s Description</h4>
                     <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-lg italic font-medium">
-                      "{job.description}"
+                      &quot;{job.description}&quot;
                     </p>
                   </div>
                   <Separator className="opacity-50" />
@@ -145,7 +149,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {plan.technicalSpecs?.map((spec: any, i: number) => (
+                    {plan.technicalSpecs?.map((spec: TechnicalSpecItem, i: number) => (
                       <div key={i} className="space-y-1 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
                         <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{spec.category}</p>
                         <p className="text-sm font-bold text-zinc-200">{spec.tech}</p>
@@ -163,7 +167,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">AI Proposed Roadmap</h2>
               </div>
               <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-zinc-100 before:to-transparent dark:before:via-zinc-800">
-                {plan.milestones?.map((m: any, i: number) => (
+                {plan.milestones?.map((m: MilestoneItem, i: number) => (
                   <div key={i} className="relative flex items-start gap-6 pl-12 group">
                     <div className="absolute left-0 flex h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-zinc-950 border-2 border-zinc-900 dark:border-zinc-50 shadow-sm">
                       <span className="text-xs font-bold">{i + 1}</span>
@@ -193,7 +197,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {plan.risks?.map((r: any, i: number) => (
+                    {plan.risks?.map((r: RiskItem, i: number) => (
                       <div key={i} className="space-y-1 border-l-2 border-amber-200 pl-3">
                         <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{r.risk}</p>
                         <p className="text-[10px] text-zinc-500 leading-relaxed italic">Mitigation: {r.mitigation}</p>

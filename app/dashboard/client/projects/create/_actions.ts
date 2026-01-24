@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { AiModelId } from "@/lib/ai/models";
+import { ProjectPlan } from "@/lib/types";
 import {
   generateProjectQuestions,
   generateProjectPlanDetails,
@@ -21,8 +22,8 @@ export async function generateAiQuestions(
 
 export async function generateProjectPlan(data: {
   idea: string;
-  answers: any;
-  mode: string;
+  answers: Record<string, string>;
+  mode: "fast" | "advanced";
   modelId: AiModelId;
 }) {
   return generateProjectPlanDetails(
@@ -38,7 +39,7 @@ export async function createFinalProject(data: {
   description: string;
   budget: string;
   deadline: string;
-  plan: any;
+  plan: ProjectPlan;
   status: "draft" | "active";
 }) {
   const session = await auth.api.getSession({
