@@ -102,6 +102,7 @@ export const project = pgTable("project", {
   talentId: text("talent_id").references(() => user.id),
   budget: text("budget"),
   deadline: timestamp("deadline"),
+  plan: text("plan"), // JSON string or text for AI generated plan
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
