@@ -24,6 +24,7 @@ import {
   Link as LinkIcon,
   Clock,
   User as UserIcon,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
@@ -37,22 +38,22 @@ export default async function ApplicantReviewPage({
   params: Promise<{ id: string; applicantId: string }>;
 }) {
   const { id, applicantId } = await params;
-  const applicant = await getApplicantDetails(id, applicantId);
+  const applicantData = await getApplicantDetails(id, applicantId);
 
   // Fetch AI Match analysis
   let aiMatch;
   try {
     aiMatch = await getAiMatchAnalysis(id, applicantId);
   } catch (e) {
-    console.log(e);
     aiMatch = null;
   }
 
-  const milestones = JSON.parse(applicant.proposedMilestones || "[]");
+  const milestones = JSON.parse(applicantData.proposedMilestones || "[]");
+  console.log(milestones);
 
   async function handleAccept() {
     "use server";
-    await acceptApplicant(id, applicantId, applicant.userId);
+    await acceptApplicant(id, applicantId, applicantData.userId);
     redirect(`/dashboard/client/projects/${id}`);
   }
 
@@ -76,15 +77,15 @@ export default async function ApplicantReviewPage({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b pb-8">
         <div className="flex items-center gap-6">
           <Avatar className="h-24 w-24 border-4 border-white shadow-xl dark:border-zinc-800">
-            <AvatarImage src={applicant.user.image || ""} />
+            <AvatarImage src={applicantData.user.image || ""} />
             <AvatarFallback className="text-2xl">
-              {applicant.user.name.charAt(0)}
+              {applicantData.user.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight">
-                {applicant.user.name}
+                {applicantData.user.name}
               </h1>
               <Badge
                 variant="secondary"
@@ -94,7 +95,7 @@ export default async function ApplicantReviewPage({
               </Badge>
             </div>
             <p className="text-zinc-500 dark:text-zinc-400 font-medium">
-              {applicant.user.location || "Location not set"}
+              {applicantData.user.location || "Location not set"}
             </p>
             <div className="flex items-center gap-4 pt-1">
               <div className="flex items-center gap-1 text-sm font-bold text-amber-500">
@@ -108,8 +109,9 @@ export default async function ApplicantReviewPage({
         <div className="flex gap-3">
           <form action={handleAccept}>
             <Button
+              type="submit"
               size="lg"
-              className="rounded-full h-12 px-8 shadow-lg gap-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="rounded-full h-12 px-8 shadow-lg gap-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95"
             >
               <ThumbsUp className="h-4 w-4" /> Accept & Hire
             </Button>
@@ -136,7 +138,7 @@ export default async function ApplicantReviewPage({
         <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* AI Match Score Widget */}
           {aiMatch && (
-            <Card className="border-none shadow-xl bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900 overflow-hidden relative">
+            <Card className="border-none shadow-xl bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900 overflow-hidden relative transition-all hover:shadow-emerald-500/10">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Brain className="h-32 w-32" />
               </div>
@@ -161,7 +163,7 @@ export default async function ApplicantReviewPage({
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-tighter opacity-60 flex items-center gap-2">
+                    <h4 className="text-[10px] font-black uppercase tracking-tighter opacity-60 flex items-center gap-2 text-emerald-400">
                       <Sparkles className="h-3 w-3" /> Core Strengths
                     </h4>
                     <ul className="space-y-2">
@@ -184,7 +186,7 @@ export default async function ApplicantReviewPage({
                       {aiMatch.risks.map((r: string, i: number) => (
                         <li
                           key={i}
-                          className="flex items-start gap-2 text-xs leading-relaxed opacity-80 italic"
+                          className="flex items-start gap-2 text-xs leading-relaxed opacity-80 italic text-amber-200 dark:text-amber-700"
                         >
                           <span className="text-amber-400 mt-1">•</span>
                           {r}
@@ -213,33 +215,41 @@ export default async function ApplicantReviewPage({
                 Proposal Pitch
               </h2>
             </div>
-            <Card>
+            <Card className="border-none shadow-sm bg-zinc-50/50 dark:bg-zinc-900/50 overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-lg italic whitespace-pre-wrap">
-                  "{applicant.proposal}"
+                  "{applicantData.proposal}"
                 </p>
-                {applicant.relevantLinks && (
-                  <div className="flex flex-wrap gap-3 pt-4">
-                    {applicant.relevantLinks
+                {applicantData.relevantLinks && (
+                  <div className="flex flex-wrap gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    {applicantData.relevantLinks
                       .split(",")
-                      .map((link: string, i: number) => (
-                        <Button
-                          key={i}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full gap-2 text-xs"
-                          asChild
-                        >
-                          <a
-                            href={link.trim()}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      .map((link: string, i: number) => {
+                        const url = link.trim().startsWith("http")
+                          ? link.trim()
+                          : `https://${link.trim()}`;
+                        let hostname = "Link";
+                        try {
+                          hostname = new URL(url).hostname;
+                        } catch (e) {}
+                        return (
+                          <Button
+                            key={i}
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full gap-2 text-xs bg-white dark:bg-zinc-950"
+                            asChild
                           >
-                            <LinkIcon className="h-3 w-3" />{" "}
-                            {new URL(link.trim()).hostname}
-                          </a>
-                        </Button>
-                      ))}
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <LinkIcon className="h-3 w-3" /> {hostname}
+                            </a>
+                          </Button>
+                        );
+                      })}
                   </div>
                 )}
               </CardContent>
@@ -255,39 +265,48 @@ export default async function ApplicantReviewPage({
               </h2>
             </div>
             <div className="space-y-3">
-              {milestones.map((m: any, i: number) => (
-                <Card
-                  key={i}
-                  className="group hover:border-emerald-200 transition-colors"
-                >
-                  <CardContent className="p-5 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold shrink-0">
-                        {i + 1}
-                      </div>
-                      <div className="space-y-0.5">
-                        <h4 className="font-bold text-sm">{m.title}</h4>
-                        <div className="flex items-center gap-3 text-[10px] text-zinc-500">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" /> Due{" "}
-                            {m.dueDate
-                              ? new Date(m.dueDate).toLocaleDateString()
-                              : "N/A"}
-                          </span>
+              {milestones.length > 0 ? (
+                milestones.map((m: any, i: number) => (
+                  <Card
+                    key={i}
+                    className="group hover:border-emerald-200 transition-colors border-zinc-100 dark:border-zinc-800"
+                  >
+                    <CardContent className="p-5 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold shrink-0">
+                          {i + 1}
+                        </div>
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-sm">{m.title}</h4>
+                          <div className="flex items-center gap-3 text-[10px] text-zinc-500">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" /> Due{" "}
+                              {m.dueDate
+                                ? new Date(m.dueDate).toLocaleDateString()
+                                : "N/A"}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">
-                        ${m.amount}
-                      </p>
-                      <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
-                        Payment 0{i + 1}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="text-right">
+                        <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">
+                          ${m.amount}
+                        </p>
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
+                          Payment 0{i + 1}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="p-12 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center space-y-2 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <Clock className="h-8 w-8 text-zinc-200" />
+                  <p className="text-sm text-zinc-500 font-medium">
+                    No detailed milestones were proposed for this bid.
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -303,10 +322,11 @@ export default async function ApplicantReviewPage({
             <CardContent className="p-6 space-y-6">
               <div className="space-y-2">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  About {applicant.user.name.split(" ")[0]}
+                  About {applicantData.user.name.split(" ")[0]}
                 </h4>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                  {applicant.user.bio || "This user hasn't added a bio yet."}
+                  {applicantData.user.bio ||
+                    "This user hasn't added a bio yet."}
                 </p>
               </div>
 
@@ -315,7 +335,7 @@ export default async function ApplicantReviewPage({
                   Expertise & Skills
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {applicant.user.skills
+                  {applicantData.user.skills
                     ?.split(",")
                     .map((skill: string, i: number) => (
                       <Badge
@@ -335,24 +355,34 @@ export default async function ApplicantReviewPage({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-500 font-medium">Joined</span>
                   <span className="font-bold">
-                    {new Date(applicant.user.createdAt).toLocaleDateString()}
+                    {new Date(
+                      applicantData.user.createdAt,
+                    ).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-500 font-medium">Role</span>
                   <span className="font-bold capitalize">
-                    {applicant.user.role}
+                    {applicantData.user.role}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500 font-medium">Website</span>
-                  <Link
-                    href={applicant.user.website || "#"}
-                    className="font-bold text-blue-600 hover:underline"
-                  >
-                    Link <ExternalLinkIcon className="inline h-3 w-3" />
-                  </Link>
-                </div>
+                {applicantData.user.website && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 font-medium">Website</span>
+                    <a
+                      href={
+                        applicantData.user.website.startsWith("http")
+                          ? applicantData.user.website
+                          : `https://${applicantData.user.website}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      Link <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -372,26 +402,5 @@ export default async function ApplicantReviewPage({
         </div>
       </div>
     </div>
-  );
-}
-
-function ExternalLinkIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M15 3h6v6" />
-      <path d="M10 14 21 3" />
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    </svg>
   );
 }

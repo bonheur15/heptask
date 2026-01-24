@@ -139,6 +139,7 @@ export const applicant = pgTable("applicant", {
   ndaSigned: boolean("nda_signed").default(false).notNull(),
   proposedMilestones: text("proposed_milestones"), // JSON string of milestones
   relevantLinks: text("relevant_links"),
+  aiAnalysis: text("ai_analysis"), // Persisted AI match analysis JSON
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
