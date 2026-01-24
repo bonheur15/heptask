@@ -5,7 +5,6 @@ import {
   Calendar,
   CheckCircle2,
   FileText,
-  FolderUp,
   ShieldCheck,
   Target,
   Wallet,
@@ -452,12 +451,12 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                 <CardDescription>Share assets with the client and auto-tag them to milestones.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-2xl border border-dashed p-6 text-center">
-                  <FolderUp className="mx-auto h-10 w-10 text-zinc-300 mb-3" />
-                  <p className="text-sm font-medium">Drop files to upload</p>
-                  <p className="text-[10px] text-zinc-400">PDF, ZIP, PNG, or Figma links</p>
-                </div>
-                <WorkspaceFileUploader projectId={project.id} label="talent" />
+                <WorkspaceFileUploader
+                  projectId={project.id}
+                  label="talent"
+                  title="Drop files or click to upload"
+                  subtitle="PDF, ZIP, PNG, or Figma links"
+                />
                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 text-xs text-emerald-700 dark:text-emerald-300">
                   <ShieldCheck className="h-4 w-4 inline-block mr-2" />
                   Files stay protected under NDA and are visible only to the project team.

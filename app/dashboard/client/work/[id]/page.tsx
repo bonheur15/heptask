@@ -5,7 +5,6 @@ import {
   Calendar,
   CheckCircle2,
   FileText,
-  FolderUp,
   Target,
   Wallet,
 } from "lucide-react";
@@ -440,12 +439,12 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                 <CardDescription>Share files and link them to milestones.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-2xl border border-dashed p-6 text-center">
-                  <FolderUp className="mx-auto h-10 w-10 text-zinc-300 mb-3" />
-                  <p className="text-sm font-medium">Drop files to upload</p>
-                  <p className="text-[10px] text-zinc-400">PDF, DOCX, audio, or design files</p>
-                </div>
-                <WorkspaceFileUploader projectId={project.id} label="client" />
+                <WorkspaceFileUploader
+                  projectId={project.id}
+                  label="client"
+                  title="Drop files or click to upload"
+                  subtitle="PDF, DOCX, audio, or design files"
+                />
               </CardContent>
             </Card>
           </div>

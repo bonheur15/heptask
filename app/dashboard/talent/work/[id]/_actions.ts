@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { deliverySubmission, milestone, project, projectMessage } from "@/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
@@ -122,6 +122,10 @@ export async function updateTalentMilestoneStatus(formData: FormData) {
     throw new Error("Forbidden");
   }
 
+  const targetMilestone = await db.query.milestone.findFirst({
+    where: and(eq(milestone.id, milestoneId), eq(milestone.projectId, projectId)),
+  });
+
   await db.update(milestone)
     .set({ status })
     .where(eq(milestone.id, milestoneId));
@@ -131,7 +135,7 @@ export async function updateTalentMilestoneStatus(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: `Milestone updated to ${status.replace("_", " ")}.`,
+    body: `Milestone ${targetMilestone?.title ?? milestoneId} marked ${status.replace("_", " ")} by talent.`,
   });
 
   revalidatePath(`/dashboard/talent/work/${projectId}`);
@@ -164,6 +168,12 @@ export async function submitTalentDelivery(formData: FormData) {
     throw new Error("Forbidden");
   }
 
+  const targetMilestone = milestoneId
+    ? await db.query.milestone.findFirst({
+        where: and(eq(milestone.id, milestoneId), eq(milestone.projectId, projectId)),
+      })
+    : null;
+
   await db.insert(deliverySubmission).values({
     id: nanoid(),
     projectId,
@@ -186,7 +196,7 @@ export async function submitTalentDelivery(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: "Delivery submitted for review.",
+    body: `Delivery submitted${targetMilestone ? ` for ${targetMilestone.title}` : ""}.`,
   });
 
   revalidatePath(`/dashboard/talent/work/${projectId}`);

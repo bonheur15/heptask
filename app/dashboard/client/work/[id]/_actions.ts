@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { deliverySubmission, milestone, project, projectMessage } from "@/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
@@ -122,6 +122,10 @@ export async function updateClientMilestoneStatus(formData: FormData) {
     throw new Error("Forbidden");
   }
 
+  const targetMilestone = await db.query.milestone.findFirst({
+    where: and(eq(milestone.id, milestoneId), eq(milestone.projectId, projectId)),
+  });
+
   await db.update(milestone)
     .set({ status })
     .where(eq(milestone.id, milestoneId));
@@ -131,7 +135,9 @@ export async function updateClientMilestoneStatus(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: `Milestone ${status === "approved" ? "approved and released" : "set back for revision"}.`,
+    body: status === "approved"
+      ? `Milestone ${targetMilestone?.title ?? milestoneId} approved by client.`
+      : `Revision requested for ${targetMilestone?.title ?? milestoneId}.`,
   });
 
   revalidatePath(`/dashboard/client/work/${projectId}`);
