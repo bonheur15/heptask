@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Building, Globe, MapPin, User as UserIcon, Pencil } from "lucide-react";
-import { User } from "@/lib/types";
+import { User } from "../../../../lib/types";
 
 export function GeneralProfile({ user }: { user: User }) {
   const [isLoading, setIsLoading] = useState(false);

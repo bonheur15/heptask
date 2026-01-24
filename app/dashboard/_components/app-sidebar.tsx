@@ -44,7 +44,7 @@ import {
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User } from "@/lib/types";
+import { User } from "../../../lib/types";
 
 export function AppSidebar({ user }: { user: User }) {
   const router = useRouter();
