@@ -1,4 +1,4 @@
-export interface User {
+export type User = {
   id: string;
   name: string;
   email: string;
@@ -12,9 +12,32 @@ export interface User {
   companyName?: string | null;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface Project {
+export type Milestone = {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string | null;
+  amount?: string | null;
+  status: string;
+  dueDate?: Date | null;
+  createdAt: Date;
+};
+
+export type ProjectFile = {
+  id: string;
+  projectId: string;
+  name: string;
+  url: string;
+  size?: string | null;
+  type?: string | null;
+  uploadedBy: string;
+  createdAt: Date;
+  uploader: User;
+};
+
+export type Project = {
   id: string;
   title: string;
   description: string;
@@ -32,20 +55,9 @@ export interface Project {
   milestones?: Milestone[];
   applicants?: Applicant[];
   files?: ProjectFile[];
-}
+};
 
-export interface Milestone {
-  id: string;
-  projectId: string;
-  title: string;
-  description?: string | null;
-  amount?: string | null;
-  status: string;
-  dueDate?: Date | null;
-  createdAt: Date;
-}
-
-export interface Applicant {
+export type Applicant = {
   id: string;
   projectId: string;
   userId: string;
@@ -60,28 +72,16 @@ export interface Applicant {
   createdAt: Date;
   user: User;
   project?: Project;
-}
+};
 
-export interface ProjectFile {
-  id: string;
-  projectId: string;
-  name: string;
-  url: string;
-  size?: string | null;
-  type?: string | null;
-  uploadedBy: string;
-  createdAt: Date;
-  uploader: User;
-}
-
-export interface AiAnalysis {
+export type AiAnalysis = {
   score: number;
   strengths: string[];
   risks: string[];
   verdict: string;
-}
+};
 
-export interface ProjectPlan {
+export type ProjectPlan = {
   summary: string;
   deliverables: string[];
   milestones: {
@@ -100,4 +100,4 @@ export interface ProjectPlan {
   }[];
   successMetrics: string[];
   timeline: string;
-}
+};
