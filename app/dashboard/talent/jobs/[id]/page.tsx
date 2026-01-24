@@ -243,7 +243,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                   <Sparkles className="h-5 w-5 text-amber-500" />
                   <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Submit Your Proposal</h2>
                 </div>
-                <ApplicationForm projectId={id} />
+                <ApplicationForm projectId={id} initialBudget={job.budget || "0"} />
               </section>
             )}
           </div>
