@@ -22,11 +22,12 @@ import {
 import Link from "next/link";
 import { NdaGate } from "./_components/nda-gate";
 import { ApplicationForm } from "./_components/application-form";
+import { SubmittedProposal } from "./_components/submitted-proposal";
 import { Separator } from "@/components/ui/separator";
 
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { job, ndaSigned, hasApplied } = await getJobDetails(id);
+  const { job, ndaSigned, hasApplied, application } = await getJobDetails(id);
 
   const plan = JSON.parse(job.plan || "{}");
 
@@ -111,7 +112,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                     </p>
                   </div>
                 </CardContent>
-              </Card>Section
+              </Card>
             </section>
 
             {/* Strategic Details Grid */}
@@ -221,21 +222,8 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
 
             {/* Application Section */}
             {hasApplied ? (
-              <section className="pt-10">
-                <Card className="bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30">
-                  <CardContent className="p-8 flex flex-col items-center text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
-                      <CheckCircle2 className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-xl font-bold text-emerald-900 dark:text-emerald-400">Application Submitted!</h3>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-500 max-w-md">
-                      The client has been notified. You'll receive a message if they're interested in your proposal.
-                    </p>
-                    <Button variant="outline" asChild className="mt-4 border-emerald-200 hover:bg-emerald-100 dark:border-emerald-900/50 rounded-full">
-                      <Link href="/dashboard/talent">Return to Dashboard</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
+              <section className="pt-10 scroll-mt-20">
+                <SubmittedProposal application={application} />
               </section>
             ) : (
               <section id="apply" className="pt-10 scroll-mt-20">

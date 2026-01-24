@@ -43,6 +43,7 @@ export async function getJobDetails(projectId: string) {
     job,
     ndaSigned: !!signature,
     hasApplied: !!existingApplication,
+    application: existingApplication,
   };
 }
 

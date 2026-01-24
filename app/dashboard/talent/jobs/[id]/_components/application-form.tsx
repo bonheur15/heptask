@@ -39,7 +39,6 @@ interface Milestone {
 export function ApplicationForm({ projectId, initialBudget }: { projectId: string; initialBudget: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [proposal, setProposal] = useState("");
-  const [budget] = useState(initialBudget);
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [links, setLinks] = useState("");
   const [milestones, setMilestones] = useState<Milestone[]>([
@@ -47,7 +46,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
   ]);
 
   const FEE_PERCENTAGE = 0.10; // 10% Platform fee
-  const totalBudget = parseFloat(budget) || 0;
+  const totalBudget = parseFloat(initialBudget) || 0;
   
   // Calculate total allocated in milestones
   const totalAllocated = milestones.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
@@ -74,6 +73,11 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
   };
 
   const updateMilestone = (id: string, field: keyof Milestone, value: any) => {
+    // If updating due date, ensure it's not after the project deadline
+    if (field === "dueDate" && value && deadline && value > deadline) {
+      toast.error("Milestone date cannot be after the project deadline.");
+      return;
+    }
     setMilestones(milestones.map(m => m.id === id ? { ...m, [field]: value } : m));
   };
 
@@ -93,12 +97,19 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
       return;
     }
 
+    // Final check for dates
+    const invalidMilestone = milestones.find(m => !m.dueDate || m.dueDate > deadline);
+    if (invalidMilestone) {
+      toast.error(`Please set valid dates for all milestones (not after ${format(deadline, "PPP")}).`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await submitApplication({
         projectId,
         proposal,
-        budget,
+        budget: initialBudget,
         timeline: format(deadline, "PPP"),
         milestones,
         links,
@@ -171,7 +182,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                     <Input 
                       id="budget" 
                       readOnly
-                      value={budget}
+                      value={initialBudget}
                       className="pl-9 h-12 text-lg font-bold bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 cursor-not-allowed" 
                     />
                   </div>
@@ -197,7 +208,13 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                       <Calendar
                         mode="single"
                         selected={deadline}
-                        onSelect={setDeadline}
+                        onSelect={(date) => {
+                          setDeadline(date);
+                          // Reset milestone dates if they now exceed the new deadline
+                          setMilestones(prev => prev.map(m => 
+                            m.dueDate && date && m.dueDate > date ? { ...m, dueDate: undefined } : m
+                          ));
+                        }}
                         disabled={(date) => date < new Date()}
                         initialFocus
                       />
@@ -211,7 +228,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                 <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 animate-in zoom-in-95">
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-zinc-500">Service Fee ({FEE_PERCENTAGE * 100}%)</span>
+                      <span className="text-zinc-500">Service Fee (10%)</span>
                       <span className="text-red-500 font-medium">-${platformFee.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
@@ -292,8 +309,16 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                       </div>
                       <div className="sm:col-span-2">
                         <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" type="button" size="sm" className="w-full h-10 text-xs justify-start px-2 font-normal truncate">
+                          <PopoverTrigger asChild disabled={!deadline}>
+                            <Button 
+                              variant="outline" 
+                              type="button" 
+                              size="sm" 
+                              className={cn(
+                                "w-full h-10 text-xs justify-start px-2 font-normal truncate",
+                                !deadline && "opacity-50 cursor-not-allowed"
+                              )}
+                            >
                               {m.dueDate ? format(m.dueDate, "MMM d") : "Due date"}
                             </Button>
                           </PopoverTrigger>
@@ -302,7 +327,7 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                               mode="single"
                               selected={m.dueDate}
                               onSelect={(date) => updateMilestone(m.id, "dueDate", date)}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => date < new Date() || (deadline ? date > deadline : false)}
                             />
                           </PopoverContent>
                         </Popover>
@@ -322,6 +347,9 @@ export function ApplicationForm({ projectId, initialBudget }: { projectId: strin
                   </div>
                 ))}
               </div>
+              {!deadline && (
+                <p className="text-[10px] text-amber-600 font-medium">Please set a Proposed Completion Date above first to schedule milestones.</p>
+              )}
             </div>
 
             <div className="pt-6 flex flex-col items-center gap-4">
