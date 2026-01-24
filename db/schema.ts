@@ -79,9 +79,85 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
+  projects: many(project, { relationName: "clientProjects" }),
+  assignedProjects: many(project, { relationName: "talentProjects" }),
+  escrow: one(escrow, {
+    fields: [user.id],
+    references: [escrow.userId],
+  }),
+  notifications: many(notification),
+}));
+
+export const project = pgTable("project", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("draft"), // draft, active, maintenance, completed, cancelled
+  clientId: text("client_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  talentId: text("talent_id").references(() => user.id),
+  budget: text("budget"),
+  deadline: timestamp("deadline"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const escrow = pgTable("escrow", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  balance: text("balance").notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const notification = pgTable("notification", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // project_update, message, payment, system
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  link: text("link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const dispute = pgTable("dispute", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("open"), // open, resolved, closed
+  reason: text("reason").notNull(),
+  aiAnalysis: text("ai_analysis"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const projectRelations = relations(project, ({ one, many }) => ({
+  client: one(user, {
+    fields: [project.clientId],
+    references: [user.id],
+    relationName: "clientProjects",
+  }),
+  talent: one(user, {
+    fields: [project.talentId],
+    references: [user.id],
+    relationName: "talentProjects",
+  }),
+  disputes: many(dispute),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

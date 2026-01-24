@@ -2,10 +2,51 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { user, project, escrow, notification, dispute } from "@/db/schema";
+import { eq, and, desc, count } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+
+export async function getClientDashboardData() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== "client") {
+    throw new Error("Unauthorized or not a client");
+  }
+
+  const userId = session.user.id;
+
+  // Fetch all data in parallel
+  const [
+    projects,
+    userEscrow,
+    notifications,
+    disputes
+  ] = await Promise.all([
+    db.select().from(project).where(eq(project.clientId, userId)).orderBy(desc(project.createdAt)),
+    db.select().from(escrow).where(eq(escrow.userId, userId)).limit(1),
+    db.select().from(notification).where(eq(notification.userId, userId)).orderBy(desc(notification.createdAt)).limit(5),
+    db.select().from(dispute)
+      .innerJoin(project, eq(dispute.projectId, project.id))
+      .where(eq(project.clientId, userId))
+      .orderBy(desc(dispute.createdAt))
+      .limit(5)
+  ]);
+
+  return {
+    projects: {
+      active: projects.filter(p => p.status === "active"),
+      draft: projects.filter(p => p.status === "draft"),
+      maintenance: projects.filter(p => p.status === "maintenance"),
+      completed: projects.filter(p => p.status === "completed"),
+    },
+    escrow: userEscrow[0] || { balance: "0", currency: "USD" },
+    notifications,
+    disputes: disputes.map(d => ({ ...d.dispute, project: d.project })),
+  };
+}
 
 export async function setRole(role: "client" | "talent" | "company") {
   const session = await auth.api.getSession({

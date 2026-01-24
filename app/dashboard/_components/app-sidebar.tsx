@@ -53,7 +53,7 @@ export function AppSidebar({ user }: { user: any }) {
     navMain: [
       {
         title: "Dashboard",
-        url: "/dashboard",
+        url: user.role === "client" ? "/dashboard/client" : "/dashboard",
         icon: LayoutDashboard,
       },
       {
