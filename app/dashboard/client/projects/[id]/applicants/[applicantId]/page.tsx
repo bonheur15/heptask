@@ -25,6 +25,8 @@ import {
   Clock,
   User as UserIcon,
   ExternalLink,
+  UserCheck,
+  Ban,
 } from "lucide-react";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
@@ -40,22 +42,26 @@ export default async function ApplicantReviewPage({
   const { id, applicantId } = await params;
   const applicantData = await getApplicantDetails(id, applicantId);
 
-  // Fetch AI Match analysis
+  // Fetch AI Match analysis (will pull from DB if exists)
   let aiMatch;
   try {
     aiMatch = await getAiMatchAnalysis(id, applicantId);
   } catch (e) {
+    console.log(e);
     aiMatch = null;
   }
 
   const milestones = JSON.parse(applicantData.proposedMilestones || "[]");
-  console.log(milestones);
 
   async function handleAccept() {
     "use server";
     await acceptApplicant(id, applicantId, applicantData.userId);
     redirect(`/dashboard/client/projects/${id}`);
   }
+
+  const isPending = applicantData.status === "pending";
+  const isAccepted = applicantData.status === "accepted";
+  const isRejected = applicantData.status === "rejected";
 
   return (
     <div className="space-y-8 pb-10 max-w-6xl mx-auto px-4">
@@ -76,22 +82,35 @@ export default async function ApplicantReviewPage({
       {/* Profile Header */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b pb-8">
         <div className="flex items-center gap-6">
-          <Avatar className="h-24 w-24 border-4 border-white shadow-xl dark:border-zinc-800">
-            <AvatarImage src={applicantData.user.image || ""} />
-            <AvatarFallback className="text-2xl">
-              {applicantData.user.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-24 w-24 border-4 border-white shadow-xl dark:border-zinc-800">
+              <AvatarImage src={applicantData.user.image || ""} />
+              <AvatarFallback className="text-2xl">
+                {applicantData.user.name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            {isAccepted && (
+              <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white rounded-full p-1.5 border-4 border-white dark:border-zinc-950 shadow-lg">
+                <UserCheck className="h-4 w-4" />
+              </div>
+            )}
+          </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight">
                 {applicantData.user.name}
               </h1>
               <Badge
-                variant="secondary"
-                className="bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400"
+                variant={
+                  isAccepted
+                    ? "default"
+                    : isRejected
+                      ? "destructive"
+                      : "secondary"
+                }
+                className="uppercase tracking-widest text-[10px]"
               >
-                <ShieldCheck className="h-3 w-3 mr-1" /> Verified Talent
+                {applicantData.status}
               </Badge>
             </div>
             <p className="text-zinc-500 dark:text-zinc-400 font-medium">
@@ -106,30 +125,55 @@ export default async function ApplicantReviewPage({
             </div>
           </div>
         </div>
+
         <div className="flex gap-3">
-          <form action={handleAccept}>
-            <Button
-              type="submit"
-              size="lg"
-              className="rounded-full h-12 px-8 shadow-lg gap-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95"
+          {isPending ? (
+            <>
+              <form action={handleAccept}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="rounded-full h-12 px-8 shadow-lg gap-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95"
+                >
+                  <ThumbsUp className="h-4 w-4" /> Accept & Hire
+                </Button>
+              </form>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full h-12 px-8 gap-2 text-zinc-500 border-zinc-200"
+              >
+                <MessageSquare className="h-4 w-4" /> Message
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="rounded-full h-12 px-6 text-zinc-400 hover:text-red-500"
+              >
+                <XCircle className="h-4 w-4" /> Reject
+              </Button>
+            </>
+          ) : isAccepted ? (
+            <div className="flex items-center gap-3">
+              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-4 py-2 rounded-full flex gap-2 items-center">
+                <UserCheck className="h-4 w-4" /> HIRED ON THIS PROJECT
+              </Badge>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full h-12 px-8 gap-2"
+              >
+                <MessageSquare className="h-4 w-4" /> Open Workspace
+              </Button>
+            </div>
+          ) : (
+            <Badge
+              variant="destructive"
+              className="px-4 py-2 rounded-full flex gap-2 items-center"
             >
-              <ThumbsUp className="h-4 w-4" /> Accept & Hire
-            </Button>
-          </form>
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded-full h-12 px-8 gap-2 text-zinc-500 border-zinc-200"
-          >
-            <MessageSquare className="h-4 w-4" /> Message
-          </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="rounded-full h-12 px-6 text-zinc-400 hover:text-red-500"
-          >
-            <XCircle className="h-4 w-4" /> Reject
-          </Button>
+              <Ban className="h-4 w-4" /> PROPOSAL REJECTED
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -145,9 +189,17 @@ export default async function ApplicantReviewPage({
               <CardContent className="p-8 space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-60">
-                      AI Talent Matching
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold uppercase tracking-widest opacity-60">
+                        AI Talent Matching
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="text-[8px] h-4 border-white/20 text-white opacity-60"
+                      >
+                        PERSISTED IN DB
+                      </Badge>
+                    </div>
                     <h3 className="text-2xl font-black italic">
                       Strategic Analysis
                     </h3>

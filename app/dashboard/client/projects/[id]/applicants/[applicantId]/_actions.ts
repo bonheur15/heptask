@@ -7,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 import { askGemini } from "@/lib/ai/gemini";
 import { AiModelId } from "@/lib/ai/models";
+import { revalidatePath } from "next/cache";
 
 export async function getApplicantDetails(
   projectId: string,
@@ -54,6 +55,15 @@ export async function getAiMatchAnalysis(
 
   if (!appData) throw new Error("Not found");
 
+  // Check if analysis already exists in DB
+  if (appData.aiAnalysis) {
+    try {
+      return JSON.parse(appData.aiAnalysis);
+    } catch (e) {
+      console.error("Failed to parse stored AI analysis");
+    }
+  }
+
   const systemPrompt = `
     You are an expert technical recruiter and talent matcher.
     Analyze the project requirements and the talent's proposal/profile.
@@ -85,5 +95,17 @@ export async function getAiMatchAnalysis(
     Proposed Milestones: ${appData.proposedMilestones}
   `;
 
-  return askGemini(modelId, systemPrompt, userPrompt);
+  const analysis = await askGemini(modelId, systemPrompt, userPrompt);
+
+  // Store in DB for future use
+  await db
+    .update(applicant)
+    .set({ aiAnalysis: JSON.stringify(analysis) })
+    .where(eq(applicant.id, applicantId));
+
+  revalidatePath(
+    `/dashboard/client/projects/${projectId}/applicants/${applicantId}`,
+  );
+
+  return analysis;
 }
