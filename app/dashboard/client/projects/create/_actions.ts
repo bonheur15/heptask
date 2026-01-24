@@ -7,14 +7,30 @@ import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { AiModelId } from "@/lib/ai/models";
-import { generateProjectQuestions, generateProjectPlanDetails } from "@/lib/ai/gemini";
+import {
+  generateProjectQuestions,
+  generateProjectPlanDetails,
+} from "@/lib/ai/gemini";
 
-export async function generateAiQuestions(idea: string, modelId: AiModelId = "gemini-1.5-pro") {
+export async function generateAiQuestions(
+  idea: string,
+  modelId: AiModelId = "gemini-2.5-flash-lite-preview-09-2025",
+) {
   return generateProjectQuestions(modelId, idea);
 }
 
-export async function generateProjectPlan(data: { idea: string; answers: any; mode: string; modelId: AiModelId }) {
-  return generateProjectPlanDetails(data.modelId, data.idea, data.answers, data.mode);
+export async function generateProjectPlan(data: {
+  idea: string;
+  answers: any;
+  mode: string;
+  modelId: AiModelId;
+}) {
+  return generateProjectPlanDetails(
+    data.modelId,
+    data.idea,
+    data.answers,
+    data.mode,
+  );
 }
 
 export async function createFinalProject(data: {

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, DollarSign, ArrowRight, MoreVertical } from "lucide-react";
@@ -19,10 +25,13 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const statusColors: Record<string, string> = {
-    active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    active:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
     draft: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
-    maintenance: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    completed: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    maintenance:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    completed:
+      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   };
 
   return (
@@ -51,13 +60,22 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
           <div className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
             <Calendar className="h-4 w-4" />
-            <span>{project.deadline ? new Date(project.deadline).toLocaleDateString() : "No deadline"}</span>
+            <span>
+              {project.deadline
+                ? new Date(project.deadline).toLocaleDateString()
+                : "No deadline"}
+            </span>
           </div>
         </div>
       </CardContent>
       <CardFooter className="pt-0">
-        <Button asChild variant="ghost" size="sm" className="ml-auto text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50">
-          <Link href={`/dashboard/projects/${project.id}`}>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="ml-auto text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50"
+        >
+          <Link href={`/dashboard/client/projects/${project.id}`}>
             View Details <ArrowRight className="ml-1 h-3 w-3" />
           </Link>
         </Button>

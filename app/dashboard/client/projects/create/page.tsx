@@ -26,7 +26,7 @@ export default function CreateProjectPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     idea: "",
-    modelId: "gemini-1.5-pro" as AiModelId,
+    modelId: "gemini-2.5-flash-lite-preview-09-2025" as AiModelId,
     mode: "fast" as "fast" | "advanced",
     answers: {} as Record<string, string>,
     plan: null as any,
@@ -36,7 +36,8 @@ export default function CreateProjectPage() {
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+  const nextStep = () =>
+    setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   const updateData = (newData: Partial<typeof formData>) => {
@@ -65,7 +66,9 @@ export default function CreateProjectPage() {
       <div className="space-y-2 max-w-2xl mx-auto">
         <div className="flex justify-between text-[10px] uppercase font-bold tracking-tighter text-zinc-400">
           <span>{STEPS[currentStep]}</span>
-          <span>Step {currentStep + 1} of {STEPS.length}</span>
+          <span>
+            Step {currentStep + 1} of {STEPS.length}
+          </span>
         </div>
         <Progress value={progress} className="h-1.5" />
       </div>
@@ -73,17 +76,17 @@ export default function CreateProjectPage() {
       {/* Steps Content */}
       <div className="pt-4">
         {currentStep === 0 && (
-          <IdeaInput 
+          <IdeaInput
             initialValue={formData.idea}
             onNext={(idea, modelId) => {
               updateData({ idea, modelId });
               nextStep();
-            }} 
+            }}
           />
         )}
 
         {currentStep === 1 && (
-          <ProcessMode 
+          <ProcessMode
             selected={formData.mode}
             onNext={(mode) => {
               updateData({ mode });
@@ -93,7 +96,7 @@ export default function CreateProjectPage() {
         )}
 
         {currentStep === 2 && (
-          <AiInterview 
+          <AiInterview
             idea={formData.idea}
             modelId={formData.modelId}
             onNext={(answers) => {
@@ -104,7 +107,7 @@ export default function CreateProjectPage() {
         )}
 
         {currentStep === 3 && (
-          <AiPlan 
+          <AiPlan
             idea={formData.idea}
             answers={formData.answers}
             mode={formData.mode}
@@ -117,9 +120,12 @@ export default function CreateProjectPage() {
         )}
 
         {currentStep === 4 && (
-          <BudgetDeadline 
+          <BudgetDeadline
             plan={formData.plan}
-            initialData={{ budget: formData.budget, deadline: formData.deadline }}
+            initialData={{
+              budget: formData.budget,
+              deadline: formData.deadline,
+            }}
             onNext={(data) => {
               updateData(data);
               nextStep();
@@ -127,18 +133,18 @@ export default function CreateProjectPage() {
           />
         )}
 
-        {currentStep === 5 && (
-          <Finalize 
-            data={formData}
-            onBack={prevStep}
-          />
-        )}
+        {currentStep === 5 && <Finalize data={formData} onBack={prevStep} />}
       </div>
 
       {/* Simple Navigation for Back (Internal to builder) */}
       {currentStep > 0 && currentStep < 5 && (
         <div className="flex justify-center pt-8">
-          <Button variant="ghost" size="sm" onClick={prevStep} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={prevStep}
+            className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50"
+          >
             Go back to previous step
           </Button>
         </div>

@@ -103,11 +103,56 @@ export const project = pgTable("project", {
   budget: text("budget"),
   deadline: timestamp("deadline"),
   plan: text("plan"), // JSON string or text for AI generated plan
+  ndaRequired: boolean("nda_required").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+});
+
+export const milestone = pgTable("milestone", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  amount: text("amount"),
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, approved
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const applicant = pgTable("applicant", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  proposal: text("proposal").notNull(),
+  budget: text("budget"),
+  timeline: text("timeline"),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  ndaSigned: boolean("nda_signed").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const projectFile = pgTable("project_file", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  size: text("size"),
+  type: text("type"), // document, sketch, audio
+  uploadedBy: text("uploaded_by")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const escrow = pgTable("escrow", {
@@ -158,7 +203,39 @@ export const projectRelations = relations(project, ({ one, many }) => ({
     references: [user.id],
     relationName: "talentProjects",
   }),
+  milestones: many(milestone),
+  applicants: many(applicant),
+  files: many(projectFile),
   disputes: many(dispute),
+}));
+
+export const milestoneRelations = relations(milestone, ({ one }) => ({
+  project: one(project, {
+    fields: [milestone.projectId],
+    references: [project.id],
+  }),
+}));
+
+export const applicantRelations = relations(applicant, ({ one }) => ({
+  project: one(project, {
+    fields: [applicant.projectId],
+    references: [project.id],
+  }),
+  user: one(user, {
+    fields: [applicant.userId],
+    references: [user.id],
+  }),
+}));
+
+export const projectFileRelations = relations(projectFile, ({ one }) => ({
+  project: one(project, {
+    fields: [projectFile.projectId],
+    references: [project.id],
+  }),
+  uploader: one(user, {
+    fields: [projectFile.uploadedBy],
+    references: [user.id],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
