@@ -12,6 +12,20 @@ export type User = {
   companyName?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  clientProjects?: Project[];
+  talentProjects?: Project[];
+  applications?: Applicant[];
+  ndaSignatures?: NdaSignature[];
+  uploadedFiles?: ProjectFile[];
+};
+
+export type NdaSignature = {
+  id: string;
+  projectId: string;
+  userId: string;
+  signedAt: Date;
+  project?: Project;
+  user?: User;
 };
 
 export type Milestone = {
@@ -23,6 +37,7 @@ export type Milestone = {
   status: string;
   dueDate?: Date | null;
   createdAt: Date;
+  project?: Project;
 };
 
 export type ProjectFile = {
@@ -34,7 +49,8 @@ export type ProjectFile = {
   type?: string | null;
   uploadedBy: string;
   createdAt: Date;
-  uploader: User;
+  uploader?: User;
+  project?: Project;
 };
 
 export type Project = {
@@ -70,7 +86,7 @@ export type Applicant = {
   relevantLinks?: string | null;
   aiAnalysis?: string | null;
   createdAt: Date;
-  user: User;
+  user?: User;
   project?: Project;
 };
 

@@ -82,8 +82,11 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
-  projects: many(project, { relationName: "clientProjects" }),
-  assignedProjects: many(project, { relationName: "talentProjects" }),
+  clientProjects: many(project, { relationName: "clientProjects" }), // Client's projects
+  talentProjects: many(project, { relationName: "talentProjects" }), // Projects where user is talent
+  applications: many(applicant), // Applications made by the user
+  ndaSignatures: many(ndaSignature),
+  uploadedFiles: many(projectFile),
   escrow: one(escrow, {
     fields: [user.id],
     references: [escrow.userId],
