@@ -1,120 +1,80 @@
-import { auth } from "@/auth";
-import { db } from "@/db";
-import { project } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { differenceInDays, formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Calendar,
   CheckCircle2,
-  Clock,
   FileText,
   FolderUp,
-  ShieldAlert,
-  Sparkles,
   Target,
-  Users,
   Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProjectPlan, Milestone, ProjectFile } from "@/lib/types";
-
-type WorkspaceMessage = {
-  id: string;
-  author: string;
-  role: "client" | "talent" | "system";
-  time: string;
-  message: string;
-};
+import { WorkspaceFileUploader } from "@/components/workspace-file-uploader";
+import {
+  getClientWorkspaceData,
+  reviewDelivery,
+  sendClientMessage,
+  updateClientMilestoneStatus,
+} from "./_actions";
 
 type ApprovalQueueItem = {
   id: string;
   title: string;
   status: "pending" | "in_review" | "approved";
   due: string;
+  date: Date;
 };
 
 export default async function ClientWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const { project, messages, deliveries, sessionUser } = await getClientWorkspaceData(id);
 
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const workspaceProject = await db.query.project.findFirst({
-    where: eq(project.id, id),
-    with: {
-      milestones: true,
-      files: {
-        with: {
-          uploader: true,
-        },
-      },
-      client: true,
-      talent: true,
-    },
-  });
-
-  if (!workspaceProject || workspaceProject.clientId !== session.user.id) {
-    notFound();
-  }
-
-  const milestones = workspaceProject.milestones;
+  const milestones = project.milestones;
   const totalMilestones = milestones.length;
   const approvedMilestones = milestones.filter((m) => m.status === "approved").length;
   const progress = totalMilestones > 0 ? Math.round((approvedMilestones / totalMilestones) * 100) : 0;
   const pendingApprovals = milestones.filter((m) => m.status === "completed" || m.status === "in_progress").length;
 
-  const plan = workspaceProject.plan
-    ? (JSON.parse(workspaceProject.plan) as ProjectPlan)
-    : null;
-
-  const budget = Number.parseFloat(workspaceProject.budget ?? "0");
+  const plan = project.plan ? (JSON.parse(project.plan) as ProjectPlan) : null;
+  const budget = Number.parseFloat(project.budget ?? "0");
   const escrowReleased = budget * (approvedMilestones / Math.max(totalMilestones, 1));
   const escrowRemaining = Math.max(budget - escrowReleased, 0);
 
-  const messages: WorkspaceMessage[] = [
-    {
-      id: "msg-1",
-      author: "You",
-      role: "client",
-      time: "2h ago",
-      message: "Confirming the kickoff call for tomorrow. Please share any early wireframes.",
-    },
-    {
-      id: "msg-2",
-      author: workspaceProject.talent?.name || "Talent",
-      role: "talent",
-      time: "90m ago",
-      message: "Great. I will upload the first UI draft and a timeline after the call.",
-    },
-    {
-      id: "msg-3",
-      author: "System",
-      role: "system",
-      time: "45m ago",
-      message: "Milestone 1 marked as in progress. Escrow funds are locked and ready.",
-    },
-  ];
+  const now = new Date();
+  const totalDuration = project.deadline ? differenceInDays(project.deadline, project.createdAt) : null;
+  const elapsedDuration = differenceInDays(now, project.createdAt);
+  const expectedProgress = totalDuration && totalDuration > 0 ? Math.min((elapsedDuration / totalDuration) * 100, 100) : null;
+  const velocityLabel = expectedProgress !== null
+    ? progress >= expectedProgress
+      ? "On Track"
+      : "At Risk"
+    : "Pending";
+
+  const recentTalentMessages = messages.filter((msg) => msg.role === "talent").length;
+  const commHealth = recentTalentMessages > 3 ? "High" : recentTalentMessages > 0 ? "Moderate" : "Low";
+
+  const overdueCount = milestones.filter((m) => {
+    if (!m.dueDate) return false;
+    return m.dueDate < now && m.status !== "approved";
+  }).length;
 
   const approvalQueue: ApprovalQueueItem[] = milestones.map((m) => ({
     id: m.id,
     title: m.title,
     status: m.status === "approved" ? "approved" : m.status === "completed" ? "in_review" : "pending",
     due: m.dueDate ? new Date(m.dueDate).toLocaleDateString() : "N/A",
-  }));
+    date: m.dueDate ?? m.createdAt,
+  }))
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 4);
 
   const formatDate = (date?: Date | null) => (date ? new Date(date).toLocaleDateString() : "N/A");
 
@@ -130,24 +90,17 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
             <span className="text-zinc-900 dark:text-zinc-50">Workspace</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{workspaceProject.title}</h1>
-            <Badge variant={workspaceProject.status === "active" ? "default" : "secondary"} className="capitalize">
-              {workspaceProject.status}
+            <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
+            <Badge variant={project.status === "active" ? "default" : "secondary"} className="capitalize">
+              {project.status}
             </Badge>
             <Badge variant="outline" className="uppercase tracking-widest text-[10px]">
               Client Workspace
             </Badge>
           </div>
-          <p className="text-zinc-500 dark:text-zinc-400 max-w-3xl">{workspaceProject.description}</p>
+          <p className="text-zinc-500 dark:text-zinc-400 max-w-3xl">{project.description}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Users className="h-4 w-4" /> Message Talent
-          </Button>
-          <Button variant="destructive" size="sm" className="gap-2">
-            <ShieldAlert className="h-4 w-4" /> Open Dispute
-          </Button>
-        </div>
+        <div className="flex flex-wrap gap-3" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-4">
@@ -169,7 +122,7 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Deadline</p>
-              <p className="text-xl font-bold">{formatDate(workspaceProject.deadline)}</p>
+              <p className="text-xl font-bold">{formatDate(project.deadline)}</p>
             </div>
           </CardContent>
         </Card>
@@ -248,18 +201,18 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                 <CardContent className="grid gap-4 sm:grid-cols-3">
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Velocity</p>
-                    <p className="text-2xl font-bold text-emerald-600">On Track</p>
-                    <p className="text-[11px] text-zinc-500">2 milestones ahead.</p>
+                    <p className="text-2xl font-bold text-emerald-600">{velocityLabel}</p>
+                    <p className="text-[11px] text-zinc-500">Progress vs timeline.</p>
                   </div>
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Comm Health</p>
-                    <p className="text-2xl font-bold text-blue-600">High</p>
-                    <p className="text-[11px] text-zinc-500">Avg response: 1h.</p>
+                    <p className="text-2xl font-bold text-blue-600">{commHealth}</p>
+                    <p className="text-[11px] text-zinc-500">Message cadence.</p>
                   </div>
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Risk Flags</p>
-                    <p className="text-2xl font-bold text-amber-600">1</p>
-                    <p className="text-[11px] text-zinc-500">Awaiting assets.</p>
+                    <p className="text-2xl font-bold text-amber-600">{overdueCount}</p>
+                    <p className="text-[11px] text-zinc-500">Overdue milestones.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -300,17 +253,21 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                   <CardDescription>Milestones waiting on review.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {approvalQueue.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border p-3">
-                      <div>
-                        <p className="text-sm font-medium">{item.title}</p>
-                        <p className="text-[10px] text-zinc-400">Due {item.due}</p>
+                  {approvalQueue.length > 0 ? (
+                    approvalQueue.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border p-3">
+                        <div>
+                          <p className="text-sm font-medium">{item.title}</p>
+                          <p className="text-[10px] text-zinc-400">Due {item.due}</p>
+                        </div>
+                        <Badge variant={item.status === "approved" ? "default" : item.status === "in_review" ? "secondary" : "outline"}>
+                          {item.status.replace("_", " ")}
+                        </Badge>
                       </div>
-                      <Badge variant={item.status === "approved" ? "default" : item.status === "in_review" ? "secondary" : "outline"}>
-                        {item.status.replace("_", " ")}
-                      </Badge>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-zinc-500">No milestones yet.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -325,8 +282,17 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-4">
               {milestones.length > 0 ? (
-                milestones.map((m: Milestone, index: number) => (
-                  <div key={m.id} className="rounded-2xl border p-5 space-y-3">
+                milestones.map((m: Milestone, index: number) => {
+                  const isApproved = m.status === "approved";
+                  const isAwaitingReview = m.status === "completed";
+                  const statusLabel = isApproved
+                    ? "approved"
+                    : isAwaitingReview
+                      ? "awaiting review"
+                      : "in progress";
+
+                  return (
+                    <div key={m.id} className="rounded-2xl border p-5 space-y-3">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="text-xs uppercase tracking-widest text-zinc-400">Step {index + 1}</p>
@@ -335,7 +301,7 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="capitalize">
-                          {m.status.replace("_", " ")}
+                          {statusLabel}
                         </Badge>
                         <Badge variant="secondary">{formatDate(m.dueDate)}</Badge>
                       </div>
@@ -346,12 +312,27 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                         ${m.amount || "0"} payout
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline">Request Revision</Button>
-                        <Button size="sm">Approve & Release</Button>
+                        <form action={updateClientMilestoneStatus}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="milestoneId" value={m.id} />
+                          <input type="hidden" name="status" value="in_progress" />
+                          <Button size="sm" variant="outline" type="submit" disabled={!isAwaitingReview}>
+                            Request Revision
+                          </Button>
+                        </form>
+                        <form action={updateClientMilestoneStatus}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="milestoneId" value={m.id} />
+                          <input type="hidden" name="status" value="approved" />
+                          <Button size="sm" type="submit" disabled={!isAwaitingReview}>
+                            Approve & Release
+                          </Button>
+                        </form>
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center text-sm text-zinc-500 py-8">
                   No milestones yet. Generate a plan to begin approvals.
@@ -369,46 +350,51 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.role === "client" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                      msg.role === "client"
-                        ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
-                        : msg.role === "system"
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
-                          : "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-200"
-                    }`}>
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest opacity-70 mb-2">
-                        <span>{msg.author}</span>
-                        <span>•</span>
-                        <span>{msg.time}</span>
+                {messages.length > 0 ? (
+                  messages.map((msg) => {
+                    const author = msg.role === "system" ? "System" : msg.sender?.name || "User";
+                    return (
+                      <div key={msg.id} className={`flex ${msg.role === "client" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                          msg.role === "client"
+                            ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                            : msg.role === "system"
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-200"
+                        }`}>
+                          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest opacity-70 mb-2">
+                            <span>{author}</span>
+                            <span>•</span>
+                            <span>{formatDistanceToNow(msg.createdAt, { addSuffix: true })}</span>
+                          </div>
+                          <p className="leading-relaxed">{msg.body}</p>
+                        </div>
                       </div>
-                      <p className="leading-relaxed">{msg.message}</p>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-zinc-500">No messages yet.</p>
+                )}
               </div>
 
-              <div className="flex items-start gap-3 border-t pt-4">
+              <form action={sendClientMessage} className="flex items-start gap-3 border-t pt-4">
+                <input type="hidden" name="projectId" value={project.id} />
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={session.user.image ?? ""} />
-                  <AvatarFallback>{session.user.name?.charAt(0) || "C"}</AvatarFallback>
+                  <AvatarImage src={sessionUser.image ?? ""} />
+                  <AvatarFallback>{sessionUser.name?.charAt(0) || "C"}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 space-y-3">
-                  <Textarea placeholder="Share feedback, approvals, or blockers..." className="min-h-[100px]" />
+                  <Textarea name="message" placeholder="Share feedback, approvals, or blockers..." className="min-h-[100px]" required />
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" className="gap-2">
+                    <Button size="sm" className="gap-2" type="submit">
                       Send Update <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="gap-2">
-                      Attach File <FolderUp className="h-4 w-4" />
                     </Button>
                     <span className="text-[10px] text-zinc-400">
                       Chats are AI-scanned for risk and safety.
                     </span>
                   </div>
                 </div>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
@@ -421,8 +407,8 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                 <CardDescription>All approved project documents and deliverables.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {workspaceProject.files.length > 0 ? (
-                  workspaceProject.files.map((file: ProjectFile) => (
+                {project.files.length > 0 ? (
+                  project.files.map((file: ProjectFile) => (
                     <div key={file.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-zinc-400" />
@@ -433,7 +419,11 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                           </p>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline">View</Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={file.url} target="_blank" rel="noreferrer">
+                          View
+                        </a>
+                      </Button>
                     </div>
                   ))
                 ) : (
@@ -455,14 +445,7 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                   <p className="text-sm font-medium">Drop files to upload</p>
                   <p className="text-[10px] text-zinc-400">PDF, DOCX, audio, or design files</p>
                 </div>
-                <Input type="file" />
-                <Button className="w-full gap-2">
-                  Upload Files <ArrowRight className="h-4 w-4" />
-                </Button>
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 text-xs text-emerald-700 dark:text-emerald-300">
-                  <Sparkles className="h-4 w-4 inline-block mr-2 text-amber-500" />
-                  AI automatically tags your uploads to the correct milestone.
-                </div>
+                <WorkspaceFileUploader projectId={project.id} label="client" />
               </CardContent>
             </Card>
           </div>
@@ -476,17 +459,58 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                 <CardDescription>Review deliveries and release funds securely.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="Leave approval notes, feedback, or change requests."
-                  className="min-h-[160px]"
-                />
-                <Input placeholder="Attach approval notes or revision links" />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button className="gap-2">
-                    Approve Work <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline">Request Revision</Button>
-                </div>
+                {deliveries.length > 0 ? (
+                  deliveries.map((delivery) => (
+                    <div key={delivery.id} className="rounded-2xl border p-5 space-y-3">
+                      <div className="flex items-center justify-between text-xs text-zinc-500">
+                        <span>Submitted {formatDistanceToNow(delivery.createdAt, { addSuffix: true })}</span>
+                        <Badge variant={delivery.status === "approved" ? "default" : delivery.status === "revision" ? "secondary" : "outline"}>
+                          {delivery.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">{delivery.summary}</p>
+                        {delivery.link && (
+                          <a className="text-xs text-blue-600 underline" href={delivery.link} target="_blank" rel="noreferrer">
+                            View delivery link
+                          </a>
+                        )}
+                        {delivery.file?.url && (
+                          <a className="text-xs text-blue-600 underline" href={delivery.file.url} target="_blank" rel="noreferrer">
+                            Download attached file
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <form action={reviewDelivery}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="deliveryId" value={delivery.id} />
+                          <input type="hidden" name="decision" value="revision" />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            type="submit"
+                            disabled={delivery.status === "revision"}
+                          >
+                            Request Revision
+                          </Button>
+                        </form>
+                        <form action={reviewDelivery}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="deliveryId" value={delivery.id} />
+                          <input type="hidden" name="decision" value="approve" />
+                          <Button size="sm" type="submit" disabled={delivery.status === "approved"}>
+                            Approve Delivery
+                          </Button>
+                        </form>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-dashed p-8 text-center text-sm text-zinc-500">
+                    No deliveries yet. Reviews will appear here once submitted.
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -509,7 +533,6 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                   <span>Communication and handoff complete</span>
                 </div>
                 <div className="rounded-xl border p-4 text-[11px] text-zinc-500">
-                  <Clock className="h-4 w-4 inline-block mr-2 text-amber-500" />
                   Approvals trigger automatic escrow release within 24 hours.
                 </div>
               </CardContent>

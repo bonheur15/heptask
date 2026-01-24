@@ -1,132 +1,81 @@
-import { auth } from "@/auth";
-import { db } from "@/db";
-import { project } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { differenceInDays, formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Calendar,
   CheckCircle2,
   FileText,
   FolderUp,
-  MessageSquare,
   ShieldCheck,
-  Sparkles,
   Target,
   Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProjectPlan, Milestone, ProjectFile } from "@/lib/types";
-
-type WorkspaceMessage = {
-  id: string;
-  author: string;
-  role: "client" | "talent" | "system";
-  time: string;
-  message: string;
-};
+import { WorkspaceFileUploader } from "@/components/workspace-file-uploader";
+import { DeliveryForm } from "./_components/delivery-form";
+import {
+  getTalentWorkspaceData,
+  sendTalentMessage,
+  submitTalentDelivery,
+  updateTalentMilestoneStatus,
+} from "./_actions";
 
 type ActivityItem = {
   id: string;
   label: string;
   time: string;
   status: "info" | "success" | "warning";
+  date: Date;
 };
 
 export default async function TalentWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const { project, messages, deliveries, sessionUser } = await getTalentWorkspaceData(id);
 
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const workspaceProject = await db.query.project.findFirst({
-    where: eq(project.id, id),
-    with: {
-      milestones: true,
-      files: {
-        with: {
-          uploader: true,
-        },
-      },
-      client: true,
-      talent: true,
-    },
-  });
-
-  if (!workspaceProject || workspaceProject.talentId !== session.user.id) {
-    notFound();
-  }
-
-  const milestones = workspaceProject.milestones;
+  const milestones = project.milestones;
   const totalMilestones = milestones.length;
   const completedMilestones = milestones.filter((m) => m.status === "approved" || m.status === "completed").length;
   const progress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
   const nextMilestone = milestones.find((m) => m.status === "pending" || m.status === "in_progress");
 
-  const plan = workspaceProject.plan
-    ? (JSON.parse(workspaceProject.plan) as ProjectPlan)
-    : null;
+  const plan = project.plan ? (JSON.parse(project.plan) as ProjectPlan) : null;
 
-  const budget = Number.parseFloat(workspaceProject.budget ?? "0");
+  const budget = Number.parseFloat(project.budget ?? "0");
   const estimatedFee = budget * 0.05;
-
-  const messages: WorkspaceMessage[] = [
-    {
-      id: "msg-1",
-      author: workspaceProject.client?.name || "Client",
-      role: "client",
-      time: "2h ago",
-      message: "Confirming the kickoff call for tomorrow. Please share any early wireframes.",
-    },
-    {
-      id: "msg-2",
-      author: "You",
-      role: "talent",
-      time: "90m ago",
-      message: "Great. I will upload the first UI draft and a timeline after the call.",
-    },
-    {
-      id: "msg-3",
-      author: "System",
-      role: "system",
-      time: "45m ago",
-      message: "Milestone 1 marked as in progress. Escrow funds are locked and ready.",
-    },
-  ];
+  const now = new Date();
+  const timelineBuffer = project.deadline ? differenceInDays(project.deadline, now) : null;
+  const overdueCount = milestones.filter((m) => {
+    if (!m.dueDate) return false;
+    const isComplete = m.status === "approved" || m.status === "completed";
+    return !isComplete && m.dueDate < now;
+  }).length;
+  const qualityScore = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   const activityFeed: ActivityItem[] = [
-    {
-      id: "activity-1",
-      label: "Milestone 1 started by talent",
-      time: "Today 10:12 AM",
-      status: "info",
-    },
-    {
-      id: "activity-2",
-      label: "Client shared 2 new files",
-      time: "Yesterday 6:40 PM",
-      status: "success",
-    },
-    {
-      id: "activity-3",
-      label: "Deadline updated with mutual approval",
-      time: "Yesterday 3:05 PM",
-      status: "warning",
-    },
-  ];
+    ...messages.map((msg) => ({
+      id: `msg-${msg.id}`,
+      label: `${msg.role === "system" ? "System" : msg.sender?.name || "User"} sent a message`,
+      time: formatDistanceToNow(msg.createdAt, { addSuffix: true }),
+      status: msg.role === "system" ? "success" : "info",
+      date: msg.createdAt,
+    })),
+    ...deliveries.map((delivery) => ({
+      id: `delivery-${delivery.id}`,
+      label: `Delivery submitted${delivery.milestone ? ` for ${delivery.milestone.title}` : ""}`,
+      time: formatDistanceToNow(delivery.createdAt, { addSuffix: true }),
+      status: delivery.status === "approved" ? "success" : delivery.status === "revision" ? "warning" : "info",
+      date: delivery.createdAt,
+    })),
+  ]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 4);
 
   const statusTone: Record<ActivityItem["status"], string> = {
     info: "bg-zinc-100 text-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-300",
@@ -148,24 +97,17 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
             <span className="text-zinc-900 dark:text-zinc-50">Workspace</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{workspaceProject.title}</h1>
-            <Badge variant={workspaceProject.status === "active" ? "default" : "secondary"} className="capitalize">
-              {workspaceProject.status}
+            <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
+            <Badge variant={project.status === "active" ? "default" : "secondary"} className="capitalize">
+              {project.status}
             </Badge>
             <Badge variant="outline" className="uppercase tracking-widest text-[10px]">
               Talent Workspace
             </Badge>
           </div>
-          <p className="text-zinc-500 dark:text-zinc-400 max-w-3xl">{workspaceProject.description}</p>
+          <p className="text-zinc-500 dark:text-zinc-400 max-w-3xl">{project.description}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
-            <MessageSquare className="h-4 w-4" /> Message Client
-          </Button>
-          <Button size="sm" className="gap-2">
-            Submit Delivery <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <div className="flex flex-wrap gap-3" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-4">
@@ -187,7 +129,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Deadline</p>
-              <p className="text-xl font-bold">{formatDate(workspaceProject.deadline)}</p>
+              <p className="text-xl font-bold">{formatDate(project.deadline)}</p>
             </div>
           </CardContent>
         </Card>
@@ -261,23 +203,25 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
               <Card>
                 <CardHeader>
                   <CardTitle>Execution Pulse</CardTitle>
-                  <CardDescription>Time, quality, and risk indicators.</CardDescription>
+                  <CardDescription>Timeline health, quality signals, and risk.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-3">
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Quality Score</p>
-                    <p className="text-2xl font-bold text-emerald-600">92%</p>
-                    <p className="text-[11px] text-zinc-500">Based on milestone feedback.</p>
+                    <p className="text-2xl font-bold text-emerald-600">{qualityScore}%</p>
+                    <p className="text-[11px] text-zinc-500">Based on completed milestones.</p>
                   </div>
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Timeline Buffer</p>
-                    <p className="text-2xl font-bold text-blue-600">6 days</p>
-                    <p className="text-[11px] text-zinc-500">Safe margin to deadline.</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {timelineBuffer !== null ? `${timelineBuffer} days` : "N/A"}
+                    </p>
+                    <p className="text-[11px] text-zinc-500">Time left to deadline.</p>
                   </div>
                   <div className="rounded-xl border p-4 space-y-2">
                     <p className="text-[10px] uppercase tracking-widest text-zinc-400">Risk Flags</p>
-                    <p className="text-2xl font-bold text-amber-600">1</p>
-                    <p className="text-[11px] text-zinc-500">Pending client assets.</p>
+                    <p className="text-2xl font-bold text-amber-600">{overdueCount}</p>
+                    <p className="text-[11px] text-zinc-500">Overdue milestones.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -318,17 +262,21 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                   <CardDescription>Latest actions across the workspace.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {activityFeed.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold ${statusTone[item.status]}`}>
-                        {item.status.toUpperCase().slice(0, 2)}
+                  {activityFeed.length > 0 ? (
+                    activityFeed.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold ${statusTone[item.status]}`}>
+                          {item.status.toUpperCase().slice(0, 2)}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{item.label}</p>
+                          <p className="text-[10px] text-zinc-400">{item.time}</p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{item.label}</p>
-                        <p className="text-[10px] text-zinc-400">{item.time}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-zinc-500">No recent activity yet.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -343,8 +291,20 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-4">
               {milestones.length > 0 ? (
-                milestones.map((m: Milestone, index: number) => (
-                  <div key={m.id} className="rounded-2xl border p-5 space-y-3">
+                milestones.map((m: Milestone, index: number) => {
+                  const isApproved = m.status === "approved";
+                  const isCompleted = m.status === "completed";
+                  const isInProgress = m.status === "in_progress";
+                  const statusLabel = isApproved
+                    ? "approved"
+                    : isCompleted
+                      ? "submitted"
+                      : isInProgress
+                        ? "in progress"
+                        : "pending";
+
+                  return (
+                    <div key={m.id} className="rounded-2xl border p-5 space-y-3">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="text-xs uppercase tracking-widest text-zinc-400">Step {index + 1}</p>
@@ -353,7 +313,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="capitalize">
-                          {m.status.replace("_", " ")}
+                          {statusLabel}
                         </Badge>
                         <Badge variant="secondary">{formatDate(m.dueDate)}</Badge>
                       </div>
@@ -364,12 +324,27 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                         ${m.amount || "0"} payout
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline">Update Status</Button>
-                        <Button size="sm">Submit for Review</Button>
+                        <form action={updateTalentMilestoneStatus}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="milestoneId" value={m.id} />
+                          <input type="hidden" name="status" value="in_progress" />
+                          <Button size="sm" variant="outline" type="submit" disabled={isApproved || isCompleted || isInProgress}>
+                            Mark In Progress
+                          </Button>
+                        </form>
+                        <form action={updateTalentMilestoneStatus}>
+                          <input type="hidden" name="projectId" value={project.id} />
+                          <input type="hidden" name="milestoneId" value={m.id} />
+                          <input type="hidden" name="status" value="completed" />
+                          <Button size="sm" type="submit" disabled={isApproved || isCompleted}>
+                            Submit for Review
+                          </Button>
+                        </form>
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center text-sm text-zinc-500 py-8">
                   No milestones yet. Ask the client to initialize milestones from the plan.
@@ -387,46 +362,51 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.role === "talent" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                      msg.role === "talent"
-                        ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
-                        : msg.role === "system"
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
-                          : "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-200"
-                    }`}>
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest opacity-70 mb-2">
-                        <span>{msg.author}</span>
-                        <span>•</span>
-                        <span>{msg.time}</span>
+                {messages.length > 0 ? (
+                  messages.map((msg) => {
+                    const author = msg.role === "system" ? "System" : msg.sender?.name || "User";
+                    return (
+                      <div key={msg.id} className={`flex ${msg.role === "talent" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                          msg.role === "talent"
+                            ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                            : msg.role === "system"
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-200"
+                        }`}>
+                          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest opacity-70 mb-2">
+                            <span>{author}</span>
+                            <span>•</span>
+                            <span>{formatDistanceToNow(msg.createdAt, { addSuffix: true })}</span>
+                          </div>
+                          <p className="leading-relaxed">{msg.body}</p>
+                        </div>
                       </div>
-                      <p className="leading-relaxed">{msg.message}</p>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-zinc-500">No messages yet.</p>
+                )}
               </div>
 
-              <div className="flex items-start gap-3 border-t pt-4">
+              <form action={sendTalentMessage} className="flex items-start gap-3 border-t pt-4">
+                <input type="hidden" name="projectId" value={project.id} />
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={session.user.image ?? ""} />
-                  <AvatarFallback>{session.user.name?.charAt(0) || "T"}</AvatarFallback>
+                  <AvatarImage src={sessionUser.image ?? ""} />
+                  <AvatarFallback>{sessionUser.name?.charAt(0) || "T"}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 space-y-3">
-                  <Textarea placeholder="Send an update, ask for approval, or flag a risk..." className="min-h-[100px]" />
+                  <Textarea name="message" placeholder="Send an update, ask for approval, or flag a risk..." className="min-h-[100px]" required />
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" className="gap-2">
+                    <Button size="sm" className="gap-2" type="submit">
                       Send Update <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="gap-2">
-                      Attach File <FolderUp className="h-4 w-4" />
                     </Button>
                     <span className="text-[10px] text-zinc-400">
                       All messages are logged for dispute resolution.
                     </span>
                   </div>
                 </div>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
@@ -439,8 +419,8 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                 <CardDescription>All documents, designs, and notes approved for the workspace.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {workspaceProject.files.length > 0 ? (
-                  workspaceProject.files.map((file: ProjectFile) => (
+                {project.files.length > 0 ? (
+                  project.files.map((file: ProjectFile) => (
                     <div key={file.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-zinc-400" />
@@ -451,7 +431,11 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                           </p>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline">View</Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={file.url} target="_blank" rel="noreferrer">
+                          View
+                        </a>
+                      </Button>
                     </div>
                   ))
                 ) : (
@@ -473,10 +457,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                   <p className="text-sm font-medium">Drop files to upload</p>
                   <p className="text-[10px] text-zinc-400">PDF, ZIP, PNG, or Figma links</p>
                 </div>
-                <Input type="file" />
-                <Button className="w-full gap-2">
-                  Upload Files <ArrowRight className="h-4 w-4" />
-                </Button>
+                <WorkspaceFileUploader projectId={project.id} label="talent" />
                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 text-xs text-emerald-700 dark:text-emerald-300">
                   <ShieldCheck className="h-4 w-4 inline-block mr-2" />
                   Files stay protected under NDA and are visible only to the project team.
@@ -491,21 +472,34 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Delivery Submission</CardTitle>
-                <CardDescription>Submit your final work for client approval and milestone release.</CardDescription>
+                <CardDescription>Submit your work for client approval and milestone release.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="Explain what you delivered, highlight progress, and note any blockers."
-                  className="min-h-[160px]"
+              <CardContent className="space-y-6">
+                {deliveries.length > 0 && (
+                  <div className="space-y-3">
+                    {deliveries.map((delivery) => (
+                      <div key={delivery.id} className="rounded-xl border p-4 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-zinc-500">
+                          <span>Submitted {formatDistanceToNow(delivery.createdAt, { addSuffix: true })}</span>
+                          <Badge variant={delivery.status === "approved" ? "default" : delivery.status === "revision" ? "secondary" : "outline"}>
+                            {delivery.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium">{delivery.summary}</p>
+                        {delivery.link && (
+                          <a className="text-xs text-blue-600 underline" href={delivery.link} target="_blank" rel="noreferrer">
+                            View delivery link
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <DeliveryForm
+                  projectId={project.id}
+                  milestones={milestones.map((milestone) => ({ id: milestone.id, title: milestone.title }))}
+                  action={submitTalentDelivery}
                 />
-                <Input placeholder="Delivery link (Figma, GitHub, Drive, etc.)" />
-                <Input type="file" />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button className="gap-2">
-                    Submit Delivery <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline">Save Draft</Button>
-                </div>
               </CardContent>
             </Card>
 
@@ -528,8 +522,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                   <span>Handoff instructions included</span>
                 </div>
                 <div className="rounded-xl border p-4 text-[11px] text-zinc-500">
-                  <Sparkles className="h-4 w-4 inline-block mr-2 text-amber-500" />
-                  Pro tip: include a Loom walkthrough to speed approvals.
+                  Share a walkthrough to speed approvals and escrow release.
                 </div>
               </CardContent>
             </Card>

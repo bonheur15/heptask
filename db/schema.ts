@@ -161,6 +161,33 @@ export const projectFile = pgTable("project_file", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const projectMessage = pgTable("project_message", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  senderId: text("sender_id").references(() => user.id),
+  role: text("role").notNull(), // client, talent, system
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const deliverySubmission = pgTable("delivery_submission", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  milestoneId: text("milestone_id").references(() => milestone.id),
+  submittedBy: text("submitted_by")
+    .notNull()
+    .references(() => user.id),
+  summary: text("summary").notNull(),
+  link: text("link"),
+  fileId: text("file_id").references(() => projectFile.id),
+  status: text("status").notNull().default("pending"), // pending, approved, revision
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const escrow = pgTable("escrow", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -212,6 +239,8 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   milestones: many(milestone),
   applicants: many(applicant),
   files: many(projectFile),
+  messages: many(projectMessage),
+  deliveries: many(deliverySubmission),
   disputes: many(dispute),
 }));
 
@@ -244,6 +273,35 @@ export const projectFileRelations = relations(projectFile, ({ one }) => ({
   }),
 }));
 
+export const projectMessageRelations = relations(projectMessage, ({ one }) => ({
+  project: one(project, {
+    fields: [projectMessage.projectId],
+    references: [project.id],
+  }),
+  sender: one(user, {
+    fields: [projectMessage.senderId],
+    references: [user.id],
+  }),
+}));
+
+export const deliverySubmissionRelations = relations(deliverySubmission, ({ one }) => ({
+  project: one(project, {
+    fields: [deliverySubmission.projectId],
+    references: [project.id],
+  }),
+  milestone: one(milestone, {
+    fields: [deliverySubmission.milestoneId],
+    references: [milestone.id],
+  }),
+  submitter: one(user, {
+    fields: [deliverySubmission.submittedBy],
+    references: [user.id],
+  }),
+  file: one(projectFile, {
+    fields: [deliverySubmission.fileId],
+    references: [projectFile.id],
+  }),
+}));
 export const ndaSignature = pgTable("nda_signature", {
   id: text("id").primaryKey(),
   projectId: text("project_id")
