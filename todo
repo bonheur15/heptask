@@ -1,0 +1,1 @@
+on milstone, when creating a project will have milstone with money on each step, and then proposal milestone will have the same, if they accept the proposed it will ask them if they are sure and then it will overwrite their milestone with proposed one.
