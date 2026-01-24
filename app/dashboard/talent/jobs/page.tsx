@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Project, User } from "@/lib/types";
 
 export default async function BrowseJobsPage() {
   const jobs = await getAvailableJobs();
@@ -47,7 +48,7 @@ export default async function BrowseJobsPage() {
 
       {/* Jobs Grid */}
       <div className="grid gap-6">
-        {jobs.length > 0 ? jobs.map(job => (
+        {jobs.length > 0 ? jobs.map((job: Project) => (
           <Card key={job.id} className="group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all overflow-hidden border-zinc-200 dark:border-zinc-800">
             <div className="flex flex-col md:flex-row">
               <div className="flex-1 p-6 space-y-4">
@@ -96,10 +97,10 @@ export default async function BrowseJobsPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-white dark:bg-zinc-800 border flex items-center justify-center text-[10px] font-bold">
-                      {job.client.name.charAt(0)}
+                      {job.client?.name?.charAt(0) || "C"}
                     </div>
                     <div>
-                      <p className="text-xs font-bold">{job.client.name}</p>
+                      <p className="text-xs font-bold">{job.client?.name || "N/A"}</p>
                       <p className="text-[10px] text-zinc-400">Verified Client</p>
                     </div>
                   </div>

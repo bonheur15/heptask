@@ -24,12 +24,13 @@ import { NdaGate } from "./_components/nda-gate";
 import { ApplicationForm } from "./_components/application-form";
 import { SubmittedProposal } from "./_components/submitted-proposal";
 import { Separator } from "@/components/ui/separator";
+import { Project, Applicant } from "@/lib/types";
 
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { job, ndaSigned, hasApplied, application } = await getJobDetails(id);
 
-  const plan = JSON.parse(job.plan || "{}");
+  const plan: ProjectPlan = JSON.parse(job.plan || "{}");
 
   return (
     <div className="space-y-8 pb-10 max-w-6xl mx-auto px-4">
@@ -245,10 +246,10 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900 flex items-center justify-center text-xl font-black shadow-lg">
-                    {job.client.name.charAt(0)}
+                    {job.client?.name?.charAt(0) || "C"}
                   </div>
                   <div>
-                    <p className="text-sm font-bold leading-none">{job.client.name}</p>
+                    <p className="text-sm font-bold leading-none">{job.client?.name || "Client"}</p>
                     <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
                       <ShieldCheck className="h-3 w-3 text-emerald-500" /> Verified Payment
                     </p>

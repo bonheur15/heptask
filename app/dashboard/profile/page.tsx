@@ -6,6 +6,8 @@ import { GeneralProfile } from "./_components/general-profile";
 import { SecuritySettings } from "./_components/security-settings";
 import { NotificationSettings } from "./_components/notification-settings";
 import { User, Shield, Bell } from "lucide-react";
+import { ProfileForm } from "../_components/profile-form";
+import { User as UserType } from "@/lib/types";
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({
@@ -15,6 +17,8 @@ export default async function ProfilePage() {
   if (!session) {
     redirect("/auth/login");
   }
+
+  const currentUser = session.user as UserType;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-10">
@@ -42,7 +46,10 @@ export default async function ProfilePage() {
         </TabsList>
 
         <TabsContent value="profile">
-          <GeneralProfile user={session.user} />
+          <GeneralProfile user={currentUser} />
+        </TabsContent>
+        <TabsContent value="edit">
+          <ProfileForm user={currentUser} />
         </TabsContent>
         <TabsContent value="security">
           <SecuritySettings />

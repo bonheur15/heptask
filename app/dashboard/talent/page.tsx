@@ -31,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Project } from "@/lib/types";
 
 export default async function TalentDashboardPage() {
   const data = await getTalentDashboardData();
@@ -134,7 +135,7 @@ export default async function TalentDashboardPage() {
             <TabsContent value="active" className="mt-0">
               <div className="grid gap-4">
                 {data.activeJobs.length > 0 ? (
-                  data.activeJobs.map((job) => (
+                  data.activeJobs.map((job: Project) => (
                     <Card
                       key={job.id}
                       className="group hover:border-zinc-400 transition-all"
@@ -240,7 +241,7 @@ export default async function TalentDashboardPage() {
             <TabsContent value="completed" className="mt-0">
               <div className="grid gap-4">
                 {data.completedJobs.length > 0 ? (
-                  data.completedJobs.map((job) => (
+                  data.completedJobs.map((job: Project) => (
                     <Card key={job.id} className="opacity-80">
                       <CardContent className="p-6 flex items-center justify-between">
                         <div>

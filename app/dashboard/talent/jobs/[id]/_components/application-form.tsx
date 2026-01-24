@@ -26,15 +26,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-
-interface Milestone {
-  id: string;
-  title: string;
-  amount: string;
-  dueDate: Date | undefined;
-}
+import { Milestone } from "@/lib/types";
 
 export function ApplicationForm({ projectId, initialBudget }: { projectId: string; initialBudget: string }) {
   const [isLoading, setIsLoading] = useState(false);

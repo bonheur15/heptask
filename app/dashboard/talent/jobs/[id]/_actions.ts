@@ -5,8 +5,9 @@ import { db } from "@/db";
 import { project, applicant, ndaSignature, notification } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
-import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { nanoid } from "nanoid";
+import { Milestone } from "@/lib/types";
 
 export async function getJobDetails(projectId: string) {
   const session = await auth.api.getSession({
@@ -68,7 +69,7 @@ export async function submitApplication(data: {
   proposal: string;
   budget: string;
   timeline: string;
-  milestones?: any[];
+  milestones?: Milestone[];
   links?: string;
 }) {
   const session = await auth.api.getSession({
