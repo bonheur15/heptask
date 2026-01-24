@@ -44,9 +44,9 @@ import {
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User } from "@/lib/types";
+import { User as UserType } from "@/lib/types";
 
-export function AppSidebar({ user }: { user: User }) {
+export function AppSidebar({ user }: { user: UserType }) {
   const router = useRouter();
   const { isMobile } = useSidebar();
 

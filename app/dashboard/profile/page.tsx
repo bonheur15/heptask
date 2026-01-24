@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralProfile } from "./_components/general-profile";
 import { SecuritySettings } from "./_components/security-settings";
 import { NotificationSettings } from "./_components/notification-settings";
-import { User, Shield, Bell } from "lucide-react";
+import { User as LucideUser, Shield, Bell } from "lucide-react";
 import { ProfileForm } from "../_components/profile-form";
 import { User as UserType } from "@/lib/types";
 
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="bg-zinc-100 dark:bg-zinc-900 w-full justify-start h-12 p-1 gap-2 border-b rounded-none bg-transparent">
           <TabsTrigger value="profile" className="rounded-md px-4 py-2 data-[state=active]:bg-zinc-100 dark:data-[state=active]:bg-zinc-900">
-            <User className="mr-2 h-4 w-4" />
+            <LucideUser className="mr-2 h-4 w-4" />
             Profile
           </TabsTrigger>
           <TabsTrigger value="security" className="rounded-md px-4 py-2 data-[state=active]:bg-zinc-100 dark:data-[state=active]:bg-zinc-900">

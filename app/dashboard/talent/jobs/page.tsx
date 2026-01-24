@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Project, User } from "@/lib/types";
+import { Project as ProjectType, User as UserType } from "@/lib/types";
 
 export default async function BrowseJobsPage() {
   const jobs = await getAvailableJobs();

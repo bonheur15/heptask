@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Building, Globe, MapPin, User as UserIcon, Pencil } from "lucide-react";
-import { User } from "@/lib/types";
+import { User as UserType } from "@/lib/types";
 
-export function GeneralProfile({ user }: { user: User }) {
+export function GeneralProfile({ user }: { user: UserType }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
