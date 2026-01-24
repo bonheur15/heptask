@@ -137,6 +137,8 @@ export const applicant = pgTable("applicant", {
   timeline: text("timeline"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   ndaSigned: boolean("nda_signed").default(false).notNull(),
+  proposedMilestones: text("proposed_milestones"), // JSON string of milestones
+  relevantLinks: text("relevant_links"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -234,6 +236,28 @@ export const projectFileRelations = relations(projectFile, ({ one }) => ({
   }),
   uploader: one(user, {
     fields: [projectFile.uploadedBy],
+    references: [user.id],
+  }),
+}));
+
+export const ndaSignature = pgTable("nda_signature", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+});
+
+export const ndaSignatureRelations = relations(ndaSignature, ({ one }) => ({
+  project: one(project, {
+    fields: [ndaSignature.projectId],
+    references: [project.id],
+  }),
+  user: one(user, {
+    fields: [ndaSignature.userId],
     references: [user.id],
   }),
 }));
