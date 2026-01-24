@@ -7,21 +7,30 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, DollarSign, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import { format, addDays, differenceInDays } from "date-fns";
+import { CalendarIcon, DollarSign, AlertTriangle, CheckCircle2, ArrowRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BudgetDeadlineProps {
+  plan: any;
   onNext: (data: { budget: string; deadline: Date | undefined }) => void;
   initialData: { budget: string; deadline: Date | undefined };
 }
 
-export function BudgetDeadline({ onNext, initialData }: BudgetDeadlineProps) {
+export function BudgetDeadline({ plan, onNext, initialData }: BudgetDeadlineProps) {
   const [budget, setBudget] = useState(initialData.budget);
   const [date, setDate] = useState<Date | undefined>(initialData.deadline);
 
   const budgetValue = parseInt(budget.replace(/[^0-9]/g, "")) || 0;
   const isLowBudget = budgetValue > 0 && budgetValue < 500;
+
+  // AI Feasibility Logic for Deadline
+  // Try to extract weeks from AI timeline string (e.g. "4-6 weeks")
+  const aiTimelineWeeks = plan?.timeline?.match(/(\d+)/)?.[1] || 4;
+  const minRecommendedDays = parseInt(aiTimelineWeeks) * 7;
+  
+  const daysUntilDeadline = date ? differenceInDays(date, new Date()) : null;
+  const isAggressiveDeadline = daysUntilDeadline !== null && daysUntilDeadline < minRecommendedDays;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto">
@@ -74,30 +83,54 @@ export function BudgetDeadline({ onNext, initialData }: BudgetDeadlineProps) {
           </div>
         </div>
 
-        {budgetValue > 0 && (
+        {(budgetValue > 0 || date) && (
           <div className={cn(
-            "p-6 rounded-2xl border transition-all duration-500",
-            isLowBudget 
+            "p-6 rounded-2xl border transition-all duration-500 space-y-4",
+            isLowBudget || isAggressiveDeadline
               ? "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/30" 
               : "bg-emerald-50 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-900/30"
           )}>
-            <div className="flex gap-4">
-              {isLowBudget ? (
-                <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
-              ) : (
-                <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
-              )}
-              <div className="space-y-1">
-                <h4 className={cn("font-bold", isLowBudget ? "text-amber-900 dark:text-amber-400" : "text-emerald-900 dark:text-emerald-400")}>
-                  {isLowBudget ? "Budget Warning" : "Budget Feasibility: Good"}
-                </h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                  {isLowBudget 
-                    ? "Your budget seems low for the proposed scope. It might be harder to find top-tier talent, or you may need to reduce the deliverables." 
-                    : "Your budget aligns well with the estimated scope and timeline. You are likely to attract high-quality talent."}
-                </p>
+            {/* Budget Check */}
+            {budgetValue > 0 && (
+              <div className="flex gap-4">
+                {isLowBudget ? (
+                  <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                )}
+                <div className="space-y-1">
+                  <h4 className={cn("text-sm font-bold", isLowBudget ? "text-amber-900 dark:text-amber-400" : "text-emerald-900 dark:text-emerald-400")}>
+                    Budget Status: {isLowBudget ? "Low" : "Optimal"}
+                  </h4>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    {isLowBudget 
+                      ? "This budget may limit the number of applicants or quality of senior talent." 
+                      : "Your budget aligns perfectly with market rates for this scope."}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Deadline Check */}
+            {date && (
+              <div className="flex gap-4 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                {isAggressiveDeadline ? (
+                  <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                )}
+                <div className="space-y-1">
+                  <h4 className={cn("text-sm font-bold", isAggressiveDeadline ? "text-amber-900 dark:text-amber-400" : "text-emerald-900 dark:text-emerald-400")}>
+                    Timeline Feasibility: {isAggressiveDeadline ? "Aggressive" : "Safe"}
+                  </h4>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    {isAggressiveDeadline 
+                      ? `AI estimates at least ${aiTimelineWeeks} weeks. Your deadline is in ${daysUntilDeadline} days. This might increase costs or risk quality.` 
+                      : `Your deadline provides ample time for the proposed ${aiTimelineWeeks} week development cycle.`}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -111,12 +144,12 @@ export function BudgetDeadline({ onNext, initialData }: BudgetDeadlineProps) {
             Review & Publish
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
-          {isLowBudget && (
+          {(isLowBudget || isAggressiveDeadline) && (
             <button 
               className="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-4"
               onClick={() => onNext({ budget, deadline: date })}
             >
-              I understand, continue anyway
+              I understand the risks, continue anyway
             </button>
           )}
         </div>

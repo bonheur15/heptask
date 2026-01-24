@@ -118,6 +118,7 @@ export default function CreateProjectPage() {
 
         {currentStep === 4 && (
           <BudgetDeadline 
+            plan={formData.plan}
             initialData={{ budget: formData.budget, deadline: formData.deadline }}
             onNext={(data) => {
               updateData(data);

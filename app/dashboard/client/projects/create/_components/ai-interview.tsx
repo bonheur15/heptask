@@ -76,7 +76,7 @@ export function AiInterview({ idea, modelId, onNext }: AiInterviewProps) {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 text-xs font-bold uppercase tracking-wider dark:bg-zinc-900">
             <Sparkles className="h-3 w-3" /> Question {currentIdx + 1} of {questions.length}
           </div>
-          <h2 className="text-3xl font-bold">{currentQuestion.question}</h2>
+          <h2 className="text-xl font-bold leading-relaxed">{currentQuestion.question}</h2>
         </div>
 
         <Card className="border-none shadow-2xl">
