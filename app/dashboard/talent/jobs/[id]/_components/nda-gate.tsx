@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Lock, ShieldCheck, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Project } from "@/lib/types";
 
 export function NdaGate({ projectId }: { projectId: string }) {
   const [isLoading, setIsLoading] = useState(false);
