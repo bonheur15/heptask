@@ -23,7 +23,7 @@ Include:
 5. Risk Assessment: Potential challenges and mitigation strategies.
 6. Success Metrics: How to measure the project's success.
 
-Return the response strictly as a JSON object with this structure:
+Return strictly as JSON:
 {
   "summary": "string",
   "deliverables": ["string"],
@@ -34,3 +34,24 @@ Return the response strictly as a JSON object with this structure:
   "timeline": "string"
 }
 `;
+
+export type ProjectPlan = {
+  summary: string;
+  deliverables: string[];
+  milestones: {
+    title: string;
+    description: string;
+    duration: string;
+  }[];
+  technicalSpecs: {
+    category: string;
+    tech: string;
+    reason: string;
+  }[];
+  risks: {
+    risk: string;
+    mitigation: string;
+  }[];
+  successMetrics: string[];
+  timeline: string;
+};

@@ -48,7 +48,6 @@ export default async function BrowseJobsPage() {
 
       {/* Jobs Grid */}
       <div className="grid gap-6">
-      <div className="grid gap-6">
         {jobs.length > 0 ? jobs.map((job: ProjectType) => (
           <Card key={job.id} className="group hover:border-zinc-400 dark:hover:border-zinc-600 transition-all overflow-hidden border-zinc-200 dark:border-zinc-800">
             <div className="flex flex-col md:flex-row">
