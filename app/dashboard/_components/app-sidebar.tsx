@@ -53,17 +53,28 @@ export function AppSidebar({ user }: { user: any }) {
     navMain: [
       {
         title: "Dashboard",
-        url: user.role === "client" ? "/dashboard/client" : "/dashboard",
+        url: user.role === "client" ? "/dashboard/client" : "/dashboard/talent",
         icon: LayoutDashboard,
       },
-      {
-        title: user.role === "client" ? "My Projects" : "Find Work",
-        url: "#",
-        icon: Sparkles,
-      },
+      ...(user.role === "client" 
+        ? [
+            {
+              title: "Post a Project",
+              url: "/dashboard/client/projects/create",
+              icon: Sparkles,
+            }
+          ]
+        : [
+            {
+              title: "Browse Jobs",
+              url: "/dashboard/talent/jobs",
+              icon: Sparkles,
+            }
+          ]
+      ),
       {
         title: "Messages",
-        url: "#",
+        url: "/dashboard/messages",
         icon: MessageSquare,
       },
       {

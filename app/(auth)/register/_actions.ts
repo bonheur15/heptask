@@ -33,7 +33,6 @@ export const signUp = async (_: SignUpState, formData: FormData): Promise<SignUp
       returnHeaders: true,
     });
     await applySetCookie(result.headers);
-    redirect("/login?signup=1");
   } catch (error) {
     if (error instanceof APIError) {
       if (
@@ -51,6 +50,8 @@ export const signUp = async (_: SignUpState, formData: FormData): Promise<SignUp
     }
     return { error: "Unable to sign up." };
   }
+
+  redirect("/login?signup=1");
 };
 
 export const signUpWithGoogle = async () => {

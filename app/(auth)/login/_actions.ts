@@ -13,7 +13,10 @@ export type SignInState = {
 
 const getCallbackUrl = () => `${getBaseUrl()}/login?verified=1`;
 
-export const signIn = async (_: SignInState, formData: FormData): Promise<SignInState> => {
+export const signIn = async (
+  _: SignInState,
+  formData: FormData,
+): Promise<SignInState> => {
   const email = String(formData.get("email") || "")
     .trim()
     .toLowerCase();
@@ -29,13 +32,15 @@ export const signIn = async (_: SignInState, formData: FormData): Promise<SignIn
       returnHeaders: true,
     });
     await applySetCookie(result.headers);
-    redirect("/");
   } catch (error) {
+    console.error("Sign in error:", error);
     if (error instanceof APIError) {
       return { error: error.message || "Unable to sign in." };
     }
-    return { error: "Unable to sign in." };
+    return { error: "An unexpected error occurred during sign in." };
   }
+
+  redirect("/");
 };
 
 export const signInWithGoogle = async () => {

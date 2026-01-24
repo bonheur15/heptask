@@ -1,14 +1,46 @@
 "use client";
 
-import { useActionState } from "react";
-import { signIn, signInWithGoogle } from "../_actions";
+import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type Props = {
   statusMessage?: string;
 };
 
 export default function LoginForm({ statusMessage }: Props) {
-  const [state, signInAction, signingIn] = useActionState(signIn, {});
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  async function handleSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const { error } = await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: "/dashboard",
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to sign in.");
+    } else {
+      toast.success("Signed in successfully!");
+      router.push("/");
+      router.refresh();
+    }
+    setIsLoading(false);
+  }
+
+  async function handleGoogleSignIn() {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,14 +56,13 @@ export default function LoginForm({ statusMessage }: Props) {
         ) : null}
       </div>
 
-      <form action={signInWithGoogle}>
-        <button
-          type="submit"
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          Continue with Google
-        </button>
-      </form>
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+      >
+        Continue with Google
+      </button>
 
       <div className="flex items-center gap-3 text-xs text-zinc-400">
         <span className="h-px flex-1 bg-zinc-200" />
@@ -39,7 +70,7 @@ export default function LoginForm({ statusMessage }: Props) {
         <span className="h-px flex-1 bg-zinc-200" />
       </div>
 
-      <form action={signInAction} className="space-y-4">
+      <form onSubmit={handleSignIn} className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-700" htmlFor="email">
             Email
@@ -49,6 +80,8 @@ export default function LoginForm({ statusMessage }: Props) {
             name="email"
             type="email"
             autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
           />
@@ -65,26 +98,23 @@ export default function LoginForm({ statusMessage }: Props) {
             name="password"
             type="password"
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
           />
         </div>
-        {state?.error ? (
-          <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            {state.error}
-          </p>
-        ) : null}
         <button
           type="submit"
           className="w-full rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-500"
-          disabled={signingIn}
+          disabled={isLoading}
         >
-          {signingIn ? "Signing in..." : "Sign in"}
+          {isLoading ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
       <div className="flex items-center justify-between text-xs text-zinc-500">
-        <a href="/forgot-password" className="hover:text-zinc-700">
+        <a href="/forgot-password" title="Coming soon" className="hover:text-zinc-700">
           Forgot password?
         </a>
         <a href="/register" className="hover:text-zinc-700">

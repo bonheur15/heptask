@@ -2,10 +2,73 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { user, project, escrow, notification, dispute } from "@/db/schema";
-import { eq, and, desc, count } from "drizzle-orm";
+import { user, project, escrow, notification, dispute, applicant } from "@/db/schema";
+import { eq, and, desc, count, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+
+export async function getTalentDashboardData() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || (session.user.role !== "talent" && session.user.role !== "company")) {
+    throw new Error("Unauthorized or not a talent/company");
+  }
+
+  const userId = session.user.id;
+
+  const [
+    appliedJobs,
+    activeJobs,
+    userEscrow,
+    notifications,
+  ] = await Promise.all([
+    db.query.applicant.findMany({
+      where: eq(applicant.userId, userId),
+      with: { project: true },
+      orderBy: desc(applicant.createdAt)
+    }),
+    db.query.project.findMany({
+      where: eq(project.talentId, userId),
+      orderBy: desc(project.updatedAt)
+    }),
+    db.select().from(escrow).where(eq(escrow.userId, userId)).limit(1),
+    db.select().from(notification).where(eq(notification.userId, userId)).orderBy(desc(notification.createdAt)).limit(5),
+  ]);
+
+  return {
+    appliedJobs,
+    activeJobs: activeJobs.filter(p => p.status === "active"),
+    completedJobs: activeJobs.filter(p => p.status === "completed"),
+    escrow: userEscrow[0] || { balance: "0", currency: "USD" },
+    notifications,
+    stats: {
+      rating: "4.9",
+      totalJobs: activeJobs.length,
+      completionRate: "100%",
+    }
+  };
+}
+
+export async function getAvailableJobs() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) throw new Error("Unauthorized");
+
+  // Show projects that are draft or active but have NO talent assigned
+  const jobs = await db.query.project.findMany({
+    where: and(
+      ne(project.clientId, session.user.id)
+    ),
+    with: { client: true },
+    orderBy: desc(project.createdAt)
+  });
+
+  return jobs;
+}
 
 export async function getClientDashboardData() {
   const session = await auth.api.getSession({

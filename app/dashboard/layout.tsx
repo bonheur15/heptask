@@ -17,21 +17,13 @@ export default async function DashboardLayout({
   });
 
   if (!session) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   if (!session.user.role) {
     return <RoleSelection />;
   }
 
-  // Handle root dashboard redirect based on role
-  const h = await headers();
-  const pathname = h.get("x-url") || ""; // We might need a middleware or check another way if x-url isn't set
-  // For now, simpler check inside the server component if it's the root /dashboard
-  // But wait, server components don't easily get the pathname without middleware.
-  // I will skip the redirect here to avoid complexity and let the user click the link,
-  // or I can do it in a middleware later.
-  
   return (
     <SidebarProvider>
       <AppSidebar user={session.user} />

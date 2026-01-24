@@ -60,9 +60,13 @@ export const applySetCookie = async (headers?: Headers | null) => {
       : (headers.get("set-cookie")
           ? splitSetCookieHeader(headers.get("set-cookie") || "")
           : []);
+  
+  console.log("Applying cookies:", rawCookies.length);
+
   if (!rawCookies.length) return;
   for (const cookie of rawCookies) {
     const parsed = parseSetCookie(cookie);
+    console.log("Setting cookie:", parsed.name, parsed.options);
     if (parsed.name) store.set(parsed.name, parsed.value, parsed.options);
   }
 };
