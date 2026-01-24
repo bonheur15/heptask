@@ -34,15 +34,16 @@ import {
 import { AVAILABLE_MODELS, AiModelId } from "@/lib/ai/models";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { AiAnalysis } from "@/lib/types";
 
 interface AiMatchAnalysisProps {
   projectId: string;
   applicantId: string;
-  initialAnalysis: any;
+  initialAnalysis: AiAnalysis | null;
 }
 
 export function AiMatchAnalysis({ projectId, applicantId, initialAnalysis }: AiMatchAnalysisProps) {
-  const [analysis, setAnalysis] = useState(initialAnalysis);
+  const [analysis, setAnalysis] = useState<AiAnalysis | null>(initialAnalysis);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AiModelId>("gemini-2.5-flash-lite-preview-09-2025");
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { askGemini } from "@/lib/ai/gemini";
 import { AiModelId } from "@/lib/ai/models";
 import { revalidatePath } from "next/cache";
+import { AiAnalysis } from "@/lib/types";
 
 export async function getApplicantDetails(
   projectId: string,

@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Building, Globe, MapPin, User, Pencil } from "lucide-react";
+import { Building, Globe, MapPin, User as UserIcon, Pencil } from "lucide-react";
+import { User } from "@/lib/types";
 
-export function GeneralProfile({ user }: { user: any }) {
+export function GeneralProfile({ user }: { user: User }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

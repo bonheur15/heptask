@@ -27,17 +27,18 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AiModelId } from "@/lib/ai/models";
+import { ProjectPlan } from "@/lib/types";
 
 interface AiPlanProps {
   idea: string;
-  answers: any;
+  answers: Record<string, string>;
   mode: string;
   modelId: AiModelId;
-  onNext: (plan: any) => void;
+  onNext: (plan: ProjectPlan) => void;
 }
 
 export function AiPlan({ idea, answers, mode, modelId, onNext }: AiPlanProps) {
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<ProjectPlan | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showTech, setShowTech] = useState(false);

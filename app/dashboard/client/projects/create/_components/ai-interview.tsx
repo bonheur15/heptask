@@ -9,6 +9,12 @@ import { generateAiQuestions } from "../_actions";
 import { Sparkles, ArrowRight, SkipForward, Loader2 } from "lucide-react";
 import { AiModelId } from "@/lib/ai/models";
 
+interface Question {
+  id: string;
+  question: string;
+  placeholder: string;
+}
+
 interface AiInterviewProps {
   idea: string;
   modelId: AiModelId;
@@ -16,7 +22,7 @@ interface AiInterviewProps {
 }
 
 export function AiInterview({ idea, modelId, onNext }: AiInterviewProps) {
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);

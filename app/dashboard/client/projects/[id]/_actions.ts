@@ -7,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
+import { ProjectPlan } from "@/lib/types";
 
 export async function getProjectDetails(projectId: string) {
   const session = await auth.api.getSession({
@@ -59,10 +60,10 @@ export async function initializeMilestones(projectId: string) {
 
   if (currentProject.milestones.length > 0) return;
 
-  const plan = JSON.parse(currentProject.plan || "{}");
+  const plan = JSON.parse(currentProject.plan || "{}") as ProjectPlan;
   if (!plan.milestones) return;
 
-  const newMilestones = plan.milestones.map((m: any) => ({
+  const newMilestones = plan.milestones.map((m) => ({
     id: nanoid(),
     projectId,
     title: m.title,

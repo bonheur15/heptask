@@ -7,13 +7,14 @@ import { createFinalProject } from "../_actions";
 import { CheckCircle2, FileText, Send, Save, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ProjectPlan } from "@/lib/types";
 
 interface FinalizeProps {
   data: {
     idea: string;
     mode: string;
-    answers: any;
-    plan: any;
+    answers: Record<string, string>;
+    plan: ProjectPlan;
     budget: string;
     deadline: Date | undefined;
   };

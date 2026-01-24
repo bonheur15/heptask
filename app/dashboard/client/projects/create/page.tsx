@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { AiModelId } from "@/lib/ai/models";
+import { ProjectPlan } from "@/lib/types";
 
 const STEPS = [
   "Idea Input",
@@ -26,10 +27,10 @@ export default function CreateProjectPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     idea: "",
-    modelId: "gemini-2.5-flash-lite-preview-09-2025" as AiModelId,
+    modelId: "gemini-1.5-pro" as AiModelId,
     mode: "fast" as "fast" | "advanced",
     answers: {} as Record<string, string>,
-    plan: null as any,
+    plan: null as ProjectPlan | null,
     budget: "",
     deadline: undefined as Date | undefined,
   });

@@ -13,8 +13,9 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Applicant } from "@/lib/types";
 
-export function SubmittedProposal({ application }: { application: any }) {
+export function SubmittedProposal({ application }: { application: Applicant }) {
   const milestones = JSON.parse(application.proposedMilestones || "[]");
   const isAccepted = application.status === "accepted";
   const isRejected = application.status === "rejected";

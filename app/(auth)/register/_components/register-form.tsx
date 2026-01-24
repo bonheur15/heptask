@@ -4,6 +4,7 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { requestPasswordResetForExisting } from "../_actions";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -55,14 +56,13 @@ export default function RegisterForm() {
 
   async function handleResetPassword() {
     setIsLoading(true);
-    const { error } = await authClient.forgetPassword({
-      email,
-      redirectTo: "/reset-password",
-    });
-    if (error) {
-      toast.error(error.message || "Failed to send reset link.");
+    const formData = new FormData();
+    formData.append("email", email);
+    const result = await requestPasswordResetForExisting({}, formData);
+    if (result.error) {
+      toast.error(result.error);
     } else {
-      toast.success("Password reset link sent!");
+      toast.success(result.message || "Password reset link sent!");
     }
     setIsLoading(false);
   }

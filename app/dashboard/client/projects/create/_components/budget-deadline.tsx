@@ -10,9 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, addDays, differenceInDays } from "date-fns";
 import { CalendarIcon, DollarSign, AlertTriangle, CheckCircle2, ArrowRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ProjectPlan } from "@/lib/types";
 
 interface BudgetDeadlineProps {
-  plan: any;
+  plan: ProjectPlan;
   onNext: (data: { budget: string; deadline: Date | undefined }) => void;
   initialData: { budget: string; deadline: Date | undefined };
 }
