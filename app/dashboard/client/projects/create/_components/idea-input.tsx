@@ -5,15 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mic, Upload, Pencil, Lightbulb, ArrowRight, Sparkles } from "lucide-react";
+import { Mic, Upload, Pencil, Lightbulb, ArrowRight, Sparkles, Brain } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AVAILABLE_MODELS, AiModelId } from "@/lib/ai/models";
 
 interface IdeaInputProps {
-  onNext: (idea: string) => void;
+  onNext: (idea: string, modelId: AiModelId) => void;
   initialValue: string;
 }
 
 export function IdeaInput({ onNext, initialValue }: IdeaInputProps) {
   const [idea, setIdea] = useState(initialValue);
+  const [modelId, setModelId] = useState<AiModelId>("gemini-1.5-pro");
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -23,6 +26,25 @@ export function IdeaInput({ onNext, initialValue }: IdeaInputProps) {
       </div>
 
       <div className="mx-auto max-w-3xl space-y-6">
+        <div className="flex items-center justify-between px-2">
+           <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
+              <Brain className="h-4 w-4" />
+              <span>AI Engine:</span>
+           </div>
+           <Select value={modelId} onValueChange={(v) => setModelId(v as AiModelId)}>
+              <SelectTrigger className="w-[200px] h-8 text-xs border-none bg-zinc-100 dark:bg-zinc-900">
+                <SelectValue placeholder="Select Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABLE_MODELS.map(m => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name} {m.recommended && "(Recommended)"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+           </Select>
+        </div>
+
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-zinc-200 to-zinc-100 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 dark:from-zinc-800 dark:to-zinc-900"></div>
           <Card className="relative border-none shadow-xl">
@@ -58,7 +80,7 @@ export function IdeaInput({ onNext, initialValue }: IdeaInputProps) {
             size="lg" 
             className="rounded-full px-8 gap-2 group" 
             disabled={!idea.trim()}
-            onClick={() => onNext(idea)}
+            onClick={() => onNext(idea, modelId)}
           >
             Start AI Analysis
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

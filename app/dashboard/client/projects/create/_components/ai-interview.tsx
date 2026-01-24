@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { generateAiQuestions } from "../_actions";
 import { Sparkles, ArrowRight, SkipForward, Loader2 } from "lucide-react";
+import { AiModelId } from "@/lib/ai/models";
 
 interface AiInterviewProps {
   idea: string;
+  modelId: AiModelId;
   onNext: (answers: Record<string, string>) => void;
 }
 
-export function AiInterview({ idea, onNext }: AiInterviewProps) {
+export function AiInterview({ idea, modelId, onNext }: AiInterviewProps) {
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -22,12 +24,12 @@ export function AiInterview({ idea, onNext }: AiInterviewProps) {
 
   useEffect(() => {
     async function fetchQuestions() {
-      const q = await generateAiQuestions(idea);
+      const q = await generateAiQuestions(idea, modelId);
       setQuestions(q);
       setLoading(false);
     }
     fetchQuestions();
-  }, [idea]);
+  }, [idea, modelId]);
 
   if (loading) {
     return (

@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { AiModelId } from "@/lib/ai/models";
 
 const STEPS = [
   "Idea Input",
@@ -25,6 +26,7 @@ export default function CreateProjectPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     idea: "",
+    modelId: "gemini-1.5-pro" as AiModelId,
     mode: "fast" as "fast" | "advanced",
     answers: {} as Record<string, string>,
     plan: null as any,
@@ -73,8 +75,8 @@ export default function CreateProjectPage() {
         {currentStep === 0 && (
           <IdeaInput 
             initialValue={formData.idea}
-            onNext={(idea) => {
-              updateData({ idea });
+            onNext={(idea, modelId) => {
+              updateData({ idea, modelId });
               nextStep();
             }} 
           />
@@ -93,6 +95,7 @@ export default function CreateProjectPage() {
         {currentStep === 2 && (
           <AiInterview 
             idea={formData.idea}
+            modelId={formData.modelId}
             onNext={(answers) => {
               updateData({ answers });
               nextStep();
@@ -105,6 +108,7 @@ export default function CreateProjectPage() {
             idea={formData.idea}
             answers={formData.answers}
             mode={formData.mode}
+            modelId={formData.modelId}
             onNext={(plan) => {
               updateData({ plan });
               nextStep();

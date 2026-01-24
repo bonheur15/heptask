@@ -6,56 +6,15 @@ import { project } from "@/db/schema";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { AiModelId } from "@/lib/ai/models";
+import { generateProjectQuestions, generateProjectPlanDetails } from "@/lib/ai/gemini";
 
-export async function generateAiQuestions(idea: string) {
-  // Simulate AI processing time
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Mock dynamic questions based on idea keywords
-  const questions = [
-    {
-      id: "q1",
-      question: "Who is the primary target audience for this project?",
-      placeholder: "e.g., Small business owners, teenagers, developers...",
-    },
-    {
-      id: "q2",
-      question: "What are the 3 most critical features you must have at launch?",
-      placeholder: "e.g., User login, payment gateway, real-time chat...",
-    },
-    {
-      id: "q3",
-      question: "Do you have any specific branding or design preferences?",
-      placeholder: "e.g., Minimalist, dark mode, high-energy colors...",
-    },
-  ];
-
-  return questions;
+export async function generateAiQuestions(idea: string, modelId: AiModelId = "gemini-1.5-pro") {
+  return generateProjectQuestions(modelId, idea);
 }
 
-export async function generateProjectPlan(data: { idea: string; answers: any; mode: string }) {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  // Mock AI Plan generation
-  const plan = {
-    summary: `A professional ${data.idea} solution tailored for your target audience.`,
-    deliverables: [
-      "Discovery & Requirement Document",
-      "High-fidelity UI/UX Designs",
-      "Core Backend Infrastructure",
-      "Frontend Implementation",
-      "Testing & Quality Assurance",
-    ],
-    timeline: "4-6 weeks",
-    technicalSpecs: [
-      "Next.js 15+ (App Router)",
-      "Tailwind CSS v4",
-      "PostgreSQL with Drizzle ORM",
-      "Better Auth for Security",
-    ],
-  };
-
-  return plan;
+export async function generateProjectPlan(data: { idea: string; answers: any; mode: string; modelId: AiModelId }) {
+  return generateProjectPlanDetails(data.modelId, data.idea, data.answers, data.mode);
 }
 
 export async function createFinalProject(data: {
