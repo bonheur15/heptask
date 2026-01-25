@@ -12,15 +12,14 @@ import {
   Briefcase,
   Wallet,
   Bell,
-  Star,
   MessageSquare,
-  ArrowUpRight,
   Clock,
   CheckCircle2,
   Search,
   ChevronRight,
   DollarSign,
 } from "lucide-react";
+import { formatDistanceToNow, isValid } from "date-fns";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,6 +34,27 @@ import { Project } from "@/lib/types";
 
 export default async function TalentDashboardPage() {
   const data = await getTalentDashboardData();
+  const appliedCount = data.appliedJobs.length;
+  const completedCount = data.completedJobs.length;
+  const activeBudgetTotal = data.activeJobs.reduce((sum, job) => sum + (Number.parseFloat(job.budget ?? "0") || 0), 0);
+  const completedBudgetTotal = data.completedJobs.reduce((sum, job) => sum + (Number.parseFloat(job.budget ?? "0") || 0), 0);
+  const upcomingDeadlines = data.activeJobs
+    .filter((job) => job.deadline)
+    .sort((a, b) => {
+      const aTime = a.deadline ? new Date(a.deadline).getTime() : 0;
+      const bTime = b.deadline ? new Date(b.deadline).getTime() : 0;
+      return aTime - bTime;
+    })
+    .slice(0, 3);
+  const applicationStats = data.appliedJobs.reduce(
+    (acc, app) => {
+      if (app.status === "accepted") acc.accepted += 1;
+      if (app.status === "rejected") acc.rejected += 1;
+      if (app.status === "pending") acc.pending += 1;
+      return acc;
+    },
+    { accepted: 0, rejected: 0, pending: 0 },
+  );
 
   const talentStats = [
     {
@@ -44,10 +64,10 @@ export default async function TalentDashboardPage() {
       color: "text-emerald-600",
     },
     {
-      label: "Rating",
-      count: data.stats.rating,
-      icon: Star,
-      color: "text-amber-500",
+      label: "Applied",
+      count: appliedCount,
+      icon: MessageSquare,
+      color: "text-blue-600",
     },
     {
       label: "Total Jobs",
@@ -56,9 +76,9 @@ export default async function TalentDashboardPage() {
       color: "text-blue-600",
     },
     {
-      label: "Success Rate",
-      count: data.stats.completionRate,
-      icon: ArrowUpRight,
+      label: "Completed",
+      count: completedCount,
+      icon: CheckCircle2,
       color: "text-emerald-500",
     },
   ];
@@ -123,12 +143,36 @@ export default async function TalentDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Work Summary</CardTitle>
+              <CardDescription>Current earnings, workload, and progress highlights.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border p-4 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400">Active Budget</p>
+                <p className="text-2xl font-bold text-emerald-600">${activeBudgetTotal.toFixed(0)}</p>
+                <p className="text-[11px] text-zinc-500">Across active projects.</p>
+              </div>
+              <div className="rounded-xl border p-4 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400">Lifetime Earned</p>
+                <p className="text-2xl font-bold text-blue-600">${completedBudgetTotal.toFixed(0)}</p>
+                <p className="text-[11px] text-zinc-500">From completed jobs.</p>
+              </div>
+              <div className="rounded-xl border p-4 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400">Success Rate</p>
+                <p className="text-2xl font-bold text-emerald-500">{data.stats.completionRate}</p>
+                <p className="text-[11px] text-zinc-500">Closed engagements.</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Tabs defaultValue="active" className="w-full">
             <div className="flex items-center justify-between mb-4">
               <TabsList className="bg-zinc-100 dark:bg-zinc-900">
-                <TabsTrigger value="active">Active Jobs</TabsTrigger>
-                <TabsTrigger value="applied">Applications</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="active">Active Jobs ({data.activeJobs.length})</TabsTrigger>
+                <TabsTrigger value="applied">Applications ({appliedCount})</TabsTrigger>
+                <TabsTrigger value="completed">Completed ({completedCount})</TabsTrigger>
               </TabsList>
             </div>
 
@@ -274,6 +318,55 @@ export default async function TalentDashboardPage() {
 
         {/* Sidebar Widgets */}
         <div className="space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Upcoming Deadlines</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {upcomingDeadlines.length > 0 ? (
+                upcomingDeadlines.map((job) => {
+                  const deadline = job.deadline ? new Date(job.deadline) : null;
+                  const label = deadline && isValid(deadline)
+                    ? formatDistanceToNow(deadline, { addSuffix: true })
+                    : "No deadline";
+                  return (
+                    <div key={job.id} className="flex items-center justify-between gap-3 rounded-xl border p-3">
+                      <div>
+                        <p className="text-sm font-semibold">{job.title}</p>
+                        <p className="text-[10px] text-zinc-500">{label}</p>
+                      </div>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/dashboard/talent/work/${job.id}`}>Open</Link>
+                      </Button>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-zinc-500">No upcoming deadlines.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Applications Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-500">Pending</span>
+                <span className="font-semibold">{applicationStats.pending}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-500">Accepted</span>
+                <span className="font-semibold text-emerald-600">{applicationStats.accepted}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-500">Rejected</span>
+                <span className="font-semibold text-amber-600">{applicationStats.rejected}</span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Notifications Widget */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -309,35 +402,22 @@ export default async function TalentDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Support / Message Widget */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-blue-500" /> Support
-              </CardTitle>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Have questions about a project or payment? Our AI support is
-                available 24/7.
-              </p>
-              <Button variant="outline" className="w-full text-xs h-8">
-                Contact Support
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full text-xs h-8" asChild>
+                <Link href="/dashboard/talent/jobs">Browse new jobs</Link>
+              </Button>
+              <Button variant="outline" className="w-full text-xs h-8" asChild>
+                <Link href="/dashboard/profile">Update profile</Link>
+              </Button>
+              <Button variant="outline" className="w-full text-xs h-8" asChild>
+                <Link href="/dashboard/messages">Open messages</Link>
               </Button>
             </CardContent>
           </Card>
-
-          {/* Platform Tip */}
-          <div className="p-6 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900 shadow-xl">
-            <h4 className="font-bold mb-2 flex items-center gap-2">
-              <Star className="h-4 w-4 text-amber-400" />
-              Pro Tip
-            </h4>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">
-              Complete your profile with your best skills and portfolio to
-              increase your chances of being hired by 40%.
-            </p>
-          </div>
         </div>
       </div>
     </div>
