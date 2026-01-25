@@ -6,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Building, Globe, MapPin, User as UserIcon, Pencil } from "lucide-react";
+import { Building, Globe, MapPin, User as UserIcon, Pencil, Sparkles } from "lucide-react";
 import { User as UserType } from "@/lib/types";
 
 export function GeneralProfile({ user }: { user: UserType }) {
   const [isLoading, setIsLoading] = useState(false);
+  const skillTags = (user.skills ?? "")
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,10 +49,10 @@ export function GeneralProfile({ user }: { user: UserType }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <UserIcon className="h-5 w-5 text-zinc-500" />
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>Profile Basics</CardTitle>
           </div>
           <CardDescription>
-            Update your public profile information.
+            Update the essentials that appear on your public profile.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -63,12 +68,12 @@ export function GeneralProfile({ user }: { user: UserType }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="bio">Bio</Label>
-            <Textarea 
-              id="bio" 
-              name="bio" 
-              defaultValue={user.bio || ""} 
-              placeholder="Tell us about yourself..." 
-              className="min-h-[120px] resize-none"
+            <Textarea
+              id="bio"
+              name="bio"
+              defaultValue={user.bio || ""}
+              placeholder="Share what you do best, typical project sizes, and preferred collaboration style."
+              className="min-h-[140px] resize-none"
             />
           </div>
         </CardContent>
@@ -78,7 +83,7 @@ export function GeneralProfile({ user }: { user: UserType }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Pencil className="h-5 w-5 text-zinc-500" />
-            <CardTitle>Role Specific Details</CardTitle>
+            <CardTitle>Professional Details</CardTitle>
           </div>
           <CardDescription>
             Information tailored to your role as a {user.role}.
@@ -113,9 +118,33 @@ export function GeneralProfile({ user }: { user: UserType }) {
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="skills">Skills & Expertise</Label>
                 <Input id="skills" name="skills" defaultValue={user.skills || ""} placeholder="e.g. Next.js, UI Design, Marketing (Comma separated)" />
+                <p className="text-xs text-zinc-500">Add comma-separated skills to appear in matching searches.</p>
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-dashed">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-zinc-500" />
+            <CardTitle>Profile Preview</CardTitle>
+          </div>
+          <CardDescription>Review how your profile reads today.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-zinc-500">
+          <p className="text-zinc-700 dark:text-zinc-300 font-semibold">{user.name}</p>
+          <p className="text-xs capitalize">{user.role}</p>
+          {user.location ? <p>{user.location}</p> : null}
+          {user.website ? <p>{user.website}</p> : null}
+          {skillTags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {skillTags.map((skill) => (
+                <Badge key={skill} variant="secondary">{skill}</Badge>
+              ))}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
