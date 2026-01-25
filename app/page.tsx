@@ -1,123 +1,240 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight, ShieldCheck, Zap, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { auth } from "@/auth";
-import { headers } from "next/headers";
+import { ArrowRight, Bot, CheckCircle2, Globe2, ShieldCheck, Sparkles, Users, Wallet } from "lucide-react";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { db } from "@/db";
+import { escrowTransaction, project } from "@/db/schema";
+import { desc } from "drizzle-orm";
+import { formatDistanceToNow } from "date-fns";
 
 export default async function Home() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+  const projects = await db.query.project.findMany({
+    columns: {
+      id: true,
+      title: true,
+      status: true,
+      budget: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: desc(project.createdAt),
   });
 
+  const deposits = await db.query.escrowTransaction.findMany({
+    columns: {
+      amount: true,
+      type: true,
+    },
+  });
+
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter((item) => item.status === "active").length;
+  const completedProjects = projects.filter((item) => item.status === "completed");
+  const totalEscrow = deposits
+    .filter((item) => item.type === "deposit")
+    .reduce((sum, item) => sum + Number.parseFloat(item.amount ?? "0"), 0);
+  const stories = completedProjects.slice(0, 3);
+
   return (
-    <div className="flex min-h-screen flex-col bg-white font-sans text-zinc-900 dark:bg-black dark:text-zinc-50">
-      {/* Navigation */}
-      <header className="fixed top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-black/80">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900">
-              <Sparkles className="h-5 w-5" />
+    <MarketingShell>
+      <section className="relative overflow-hidden px-4 py-24">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-8 h-64 w-64 -translate-x-1/2 rounded-full bg-[var(--accent)]/30 blur-[120px]" />
+          <div className="absolute right-20 top-32 h-48 w-48 rounded-full bg-[var(--accent-2)]/30 blur-[120px]" />
+          <div className="absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(17,17,17,0.06),_transparent_60%)]" />
+        </div>
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Launch. Align. Deliver.</p>
+            <h1 className="text-5xl font-[var(--font-display)] tracking-tight sm:text-6xl">
+              Turn Ideas Into Reality with a team that ships on time.
+            </h1>
+            <p className="text-lg text-[var(--muted)]">
+              Heptadev blends AI planning, escrow protection, and vetted talent to keep projects moving from kickoff to final release.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-[var(--edge)] px-6 py-3 text-sm font-semibold text-white">
+                Post a Project <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+                Find Work
+              </Link>
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+                Join as Company
+              </Link>
             </div>
-            <span className="text-xl font-bold tracking-tight">Heptadev</span>
           </div>
-          <nav className="hidden space-x-8 md:flex">
-            <Link href="#features" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">Features</Link>
-            <Link href="#how-it-works" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">How it Works</Link>
-            <Link href="/pricing" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">Pricing</Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            {session ? (
-              <Button asChild variant="default" size="sm" className="rounded-full">
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
+          <div className="grid gap-4">
+            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Live Activity</p>
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">Active Projects</p>
+                    <p className="text-xs text-[var(--muted)]">Currently in execution</p>
+                  </div>
+                  <p className="text-2xl font-[var(--font-display)]">{activeProjects}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">Escrow Protected</p>
+                    <p className="text-xs text-[var(--muted)]">Deposits in the platform</p>
+                  </div>
+                  <p className="text-2xl font-[var(--font-display)]">${totalEscrow.toFixed(0)}</p>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">Total Projects</p>
+                    <p className="text-xs text-[var(--muted)]">Matched across the network</p>
+                  </div>
+                  <p className="text-2xl font-[var(--font-display)]">{totalProjects}</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-black/10 bg-[var(--edge)]/95 p-6 text-white">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">Workspace Highlights</p>
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/70">Milestone approvals</span>
+                  <span className="font-semibold">{completedProjects.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/70">Talent pipeline</span>
+                  <span className="font-semibold">Verified teams</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/70">AI-assisted planning</span>
+                  <span className="font-semibold">Always on</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { title: "Brief in minutes", icon: Sparkles, text: "Use the AI project builder to convert ideas into structured scope, milestones, and budgets." },
+              { title: "Match & align", icon: Users, text: "Invite vetted talent, compare proposals, and align on milestones before work begins." },
+              { title: "Deliver & release", icon: Wallet, text: "Track progress, approve milestones, and release escrow payments with audit trails." },
+            ].map((item) => (
+              <div key={item.title} className="rounded-3xl border border-black/10 bg-white p-6">
+                <item.icon className="h-6 w-6 text-[var(--edge)]" />
+                <h3 className="mt-4 text-xl font-[var(--font-display)]">{item.title}</h3>
+                <p className="mt-2 text-sm text-[var(--muted)]">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Clients</p>
+            <h2 className="mt-4 text-3xl font-[var(--font-display)]">Keep delivery visible, protected, and fast.</h2>
+            <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent-2)]" />Escrow holds funds until each milestone is approved.</li>
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent-2)]" />AI planning clarifies scope and reduces revision cycles.</li>
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent-2)]" />Workspace updates keep stakeholders aligned with delivery health.</li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Talent</p>
+            <h2 className="mt-4 text-3xl font-[var(--font-display)]">Work with clarity, get paid with confidence.</h2>
+            <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent)]" />Proposals map directly to milestone payouts.</li>
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent)]" />Workspaces bundle chat, files, and approvals in one place.</li>
+              <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent)]" />Dispute resolution backed by AI analysis and human review.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <ShieldCheck className="h-6 w-6 text-[var(--edge)]" />
+            <h3 className="mt-4 text-xl font-[var(--font-display)]">Safety & Escrow</h3>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Funds stay protected until milestones are approved, with audit trails for every release.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <Bot className="h-6 w-6 text-[var(--edge)]" />
+            <h3 className="mt-4 text-xl font-[var(--font-display)]">AI Project Planning</h3>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Convert loose ideas into milestone plans, timelines, and deliverable checklists.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <Globe2 className="h-6 w-6 text-[var(--edge)]" />
+            <h3 className="mt-4 text-xl font-[var(--font-display)]">Global Talent, Local Control</h3>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Browse verified talent or let Heptadev match teams based on scope and urgency.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Testimonials</p>
+              <h2 className="mt-3 text-3xl font-[var(--font-display)]">Recent completions that showcase real outcomes.</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">Based on the latest closed projects on Heptadev.</p>
+            </div>
+            <Link href="/projects" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--edge)]">
+              Explore live projects <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {stories.length > 0 ? (
+              stories.map((story) => (
+                <div key={story.id} className="rounded-2xl border border-black/5 p-4">
+                  <p className="text-sm font-semibold">{story.title}</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    Completed {formatDistanceToNow(story.updatedAt, { addSuffix: true })}
+                  </p>
+                  <p className="mt-3 text-sm font-[var(--font-display)]">
+                    Budget ${Number.parseFloat(story.budget ?? "0").toFixed(0)}
+                  </p>
+                </div>
+              ))
             ) : (
-              <>
-                <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">Login</Link>
-                <Button asChild size="sm" className="rounded-full">
-                  <Link href="/register">Get Started</Link>
-                </Button>
-              </>
+              <div className="rounded-2xl border border-dashed border-black/10 p-8 text-sm text-[var(--muted)]">
+                New projects are coming in daily. Check back soon.
+              </div>
             )}
           </div>
         </div>
-      </header>
+      </section>
 
-      <main className="flex-1 pt-16">
-        {/* Hero Section */}
-        <section className="relative px-4 py-24 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-5xl text-center">
-            <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl">
-              Turn Ideas Into <span className="text-zinc-500 dark:text-zinc-400">Reality</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-xl text-zinc-600 dark:text-zinc-400">
-              Heptadev is an AI-powered project marketplace that connects idea owners with top-tier talent. Guaranteed delivery, escrow payments, and AI-assisted planning.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              {session ? (
-                <Button asChild size="lg" className="h-12 rounded-full px-8 text-base">
-                  <Link href="/dashboard">
-                    Return to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              ) : (
-                <>
-                  <Button asChild size="lg" className="h-12 rounded-full px-8 text-base">
-                    <Link href="/register">
-                      Post your Project <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="h-12 rounded-full px-8 text-base">
-                    <Link href="/register">Find Work</Link>
-                  </Button>
-                </>
-              )}
+      <section className="px-4 pb-24">
+        <div className="mx-auto max-w-6xl rounded-[36px] border border-black/10 bg-[var(--edge)] p-10 text-white">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <h2 className="text-3xl font-[var(--font-display)]">Ready to launch your next build?</h2>
+              <p className="mt-3 text-sm text-white/70">
+                Post a project, explore work, or join as an enterprise team. Choose your path and let Heptadev handle the rest.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+                Post a Project
+              </Link>
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white">
+                Find Work
+              </Link>
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white">
+                Join as Company
+              </Link>
             </div>
           </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="bg-zinc-50 px-4 py-24 dark:bg-zinc-900/50 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid gap-12 md:grid-cols-3">
-              <div className="space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-zinc-800">
-                  <Zap className="h-6 w-6 text-amber-600" />
-                </div>
-                <h3 className="text-xl font-bold">AI-Powered Planning</h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Our AI helps you draft clear requirements and milestones, removing communication barriers between clients and talents.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-zinc-800">
-                  <ShieldCheck className="h-6 w-6 text-emerald-600" />
-                </div>
-                <h3 className="text-xl font-bold">Escrow Protection</h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Payments are held in escrow and released only when milestones are approved, ensuring fairness for both parties.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-zinc-800">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold">Verified Talent</h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Connect with skilled individuals and companies vetted for quality and professional standards.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-zinc-100 py-12 dark:border-zinc-800">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="text-sm text-zinc-500">
-            © {new Date().getFullYear()} Heptadev. All rights reserved.
-          </p>
         </div>
-      </footer>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }
