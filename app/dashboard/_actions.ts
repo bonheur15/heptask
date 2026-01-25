@@ -2,8 +2,17 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { user, project, escrow, notification, dispute, applicant } from "@/db/schema";
-import { eq, and, desc, count, ne } from "drizzle-orm";
+import {
+  user,
+  project,
+  escrow,
+  notification,
+  dispute,
+  applicant,
+  companyAssignment,
+  companyTeam,
+} from "@/db/schema";
+import { eq, and, desc, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
@@ -23,6 +32,8 @@ export async function getTalentDashboardData() {
     activeJobs,
     userEscrow,
     notifications,
+    teamMemberships,
+    memberAssignments,
   ] = await Promise.all([
     db.query.applicant.findMany({
       where: eq(applicant.userId, userId),
@@ -35,7 +46,31 @@ export async function getTalentDashboardData() {
     }),
     db.select().from(escrow).where(eq(escrow.userId, userId)).limit(1),
     db.select().from(notification).where(eq(notification.userId, userId)).orderBy(desc(notification.createdAt)).limit(5),
+    db.query.companyTeam.findMany({
+      where: eq(companyTeam.memberId, userId),
+      with: {
+        company: true,
+      },
+      orderBy: desc(companyTeam.createdAt),
+    }),
+    db.query.companyAssignment.findMany({
+      where: eq(companyAssignment.memberId, userId),
+      with: {
+        project: true,
+      },
+      orderBy: desc(companyAssignment.createdAt),
+    }),
   ]);
+
+  const companyLookup = new Map(
+    teamMemberships.map((membership) => [membership.companyId, membership.company]),
+  );
+  const companyAssignments = memberAssignments
+    .filter((assignment) => companyLookup.has(assignment.project.talentId))
+    .map((assignment) => ({
+      ...assignment,
+      company: companyLookup.get(assignment.project.talentId) ?? null,
+    }));
 
   return {
     appliedJobs,
@@ -43,6 +78,7 @@ export async function getTalentDashboardData() {
     completedJobs: activeJobs.filter(p => p.status === "completed"),
     escrow: userEscrow[0] || { balance: "0", currency: "USD" },
     notifications,
+    companyAssignments,
     stats: {
       rating: "4.9",
       totalJobs: activeJobs.length,

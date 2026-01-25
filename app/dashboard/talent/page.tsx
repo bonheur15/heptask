@@ -36,6 +36,7 @@ export default async function TalentDashboardPage() {
   const data = await getTalentDashboardData();
   const appliedCount = data.appliedJobs.length;
   const completedCount = data.completedJobs.length;
+  const companyAssignmentCount = data.companyAssignments?.length ?? 0;
   const activeBudgetTotal = data.activeJobs.reduce((sum, job) => sum + (Number.parseFloat(job.budget ?? "0") || 0), 0);
   const completedBudgetTotal = data.completedJobs.reduce((sum, job) => sum + (Number.parseFloat(job.budget ?? "0") || 0), 0);
   const upcomingDeadlines = data.activeJobs
@@ -173,6 +174,7 @@ export default async function TalentDashboardPage() {
                 <TabsTrigger value="active">Active Jobs ({data.activeJobs.length})</TabsTrigger>
                 <TabsTrigger value="applied">Applications ({appliedCount})</TabsTrigger>
                 <TabsTrigger value="completed">Completed ({completedCount})</TabsTrigger>
+                <TabsTrigger value="company">Team Assignments ({companyAssignmentCount})</TabsTrigger>
               </TabsList>
             </div>
 
@@ -314,6 +316,45 @@ export default async function TalentDashboardPage() {
                 ) : (
                   <div className="text-center py-12 text-zinc-500 border-2 border-dashed rounded-2xl">
                     No completed jobs yet. Keep up the great work!
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="company" className="mt-0">
+              <div className="grid gap-4">
+                {data.companyAssignments?.length ? (
+                  data.companyAssignments.map((assignment) => {
+                    const allocation = Number.parseFloat(assignment.allocation ?? "0") || 0;
+                    return (
+                      <Card
+                        key={assignment.id}
+                        className="group hover:border-zinc-400 transition-all"
+                      >
+                        <CardContent className="p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-lg">{assignment.project.title}</h4>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                              <span>Company: {assignment.company?.name ?? "Company"}</span>
+                              <span>Allocation: ${allocation.toFixed(0)}</span>
+                              <span>Status: {assignment.status}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="uppercase text-xs">
+                              Team Work
+                            </Badge>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/dashboard/talent/work/${assignment.projectId}`}>Open</Link>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12 text-zinc-500 border-2 border-dashed rounded-2xl">
+                    No team assignments yet.
                   </div>
                 )}
               </div>

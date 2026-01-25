@@ -12,6 +12,11 @@ import {
   escrowTransaction,
   payoutTransaction,
   withdrawalRequest,
+  companyTeam,
+  companyInvite,
+  companyAssignment,
+  companyAutoApply,
+  companyPriorityInterest,
 } from "@/db/schema";
 import { ProjectPlan as AiProjectPlanType } from "@/lib/ai/prompts"; // Import AI Plan type
 
@@ -27,6 +32,11 @@ export type DeliverySubmission = InferSelectModel<typeof deliverySubmission>;
 export type EscrowTransaction = InferSelectModel<typeof escrowTransaction>;
 export type PayoutTransaction = InferSelectModel<typeof payoutTransaction>;
 export type WithdrawalRequest = InferSelectModel<typeof withdrawalRequest>;
+export type CompanyTeam = InferSelectModel<typeof companyTeam>;
+export type CompanyInvite = InferSelectModel<typeof companyInvite>;
+export type CompanyAssignment = InferSelectModel<typeof companyAssignment>;
+export type CompanyAutoApply = InferSelectModel<typeof companyAutoApply>;
+export type CompanyPriorityInterest = InferSelectModel<typeof companyPriorityInterest>;
 export type AiAnalysis = {
   score: number;
   strengths: string[];

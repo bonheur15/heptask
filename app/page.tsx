@@ -32,9 +32,9 @@ export default async function Home() {
               </Button>
             ) : (
               <>
-                <Link href="/auth/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">Login</Link>
+                <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50">Login</Link>
                 <Button asChild size="sm" className="rounded-full">
-                  <Link href="/auth/register">Get Started</Link>
+                  <Link href="/register">Get Started</Link>
                 </Button>
               </>
             )}
@@ -62,12 +62,12 @@ export default async function Home() {
               ) : (
                 <>
                   <Button asChild size="lg" className="h-12 rounded-full px-8 text-base">
-                    <Link href="/auth/register">
+                    <Link href="/register">
                       Post your Project <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="h-12 rounded-full px-8 text-base">
-                    <Link href="/auth/register">Find Work</Link>
+                    <Link href="/register">Find Work</Link>
                   </Button>
                 </>
               )}

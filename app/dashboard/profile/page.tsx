@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   });
 
   if (!session) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   const currentUser = session.user as UserType;

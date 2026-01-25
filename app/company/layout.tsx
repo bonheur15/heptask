@@ -1,0 +1,65 @@
+import { auth } from "@/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "../dashboard/_components/app-sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { User as UserType } from "@/lib/types";
+
+export default async function CompanyLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  if (session.user.role !== "company") {
+    if (session.user.role === "client") {
+      redirect("/dashboard/client");
+    }
+
+    redirect("/dashboard/talent");
+  }
+
+  const sidebarUser: UserType = {
+    ...session.user,
+    image: session.user.image ?? null,
+    role: session.user.role ?? null,
+    bio: session.user.bio ?? null,
+    skills: session.user.skills ?? null,
+    location: session.user.location ?? null,
+    website: session.user.website ?? null,
+    companyName: session.user.companyName ?? null,
+  };
+
+  return (
+    <SidebarProvider>
+      <AppSidebar user={sidebarUser} />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Company</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

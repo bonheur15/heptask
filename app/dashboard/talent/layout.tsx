@@ -2,7 +2,11 @@ import { auth } from "@/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function PaymentsRedirect() {
+export default async function TalentDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -12,12 +16,12 @@ export default async function PaymentsRedirect() {
   }
 
   if (session.user.role === "client") {
-    redirect("/dashboard/client/payments");
+    redirect("/dashboard/client");
   }
 
-  if (session.user.role === "company") {
-    redirect("/company/dashboard");
+  if (session.user.role !== "talent" && session.user.role !== "company") {
+    redirect("/dashboard");
   }
 
-  redirect("/dashboard/talent/payments");
+  return children;
 }

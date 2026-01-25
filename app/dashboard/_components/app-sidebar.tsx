@@ -4,16 +4,19 @@ import * as React from "react";
 import {
   BadgeCheck,
   Bell,
-  ChevronRight,
+  Briefcase,
+  Building2,
   ChevronsUpDown,
+  ClipboardList,
   CreditCard,
   LayoutDashboard,
   LogOut,
-  Mail,
   MessageSquare,
+  Search,
   Settings,
   Sparkles,
-  UserCircle,
+  Target,
+  Users,
 } from "lucide-react";
 
 import {
@@ -34,56 +37,76 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { User as UserType } from "@/lib/types";
 
 export function AppSidebar({ user }: { user: UserType }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isMobile } = useSidebar();
 
-  const data = {
-    navMain: [
-      {
-        title: "Dashboard",
-        url: user.role === "client" ? "/dashboard/client" : "/dashboard/talent",
-        icon: LayoutDashboard,
-      },
-      ...(user.role === "client" 
-        ? [
-            {
-              title: "Post a Project",
-              url: "/dashboard/client/projects/create",
-              icon: Sparkles,
-            }
-          ]
-        : [
-            {
-              title: "Browse Jobs",
-              url: "/dashboard/talent/jobs",
-              icon: Sparkles,
-            }
-          ]
-      ),
-      {
-        title: "Messages",
-        url: "/dashboard/messages",
-        icon: MessageSquare,
-      },
-      {
-        title: "Settings",
-        url: "/dashboard/profile",
-        icon: Settings,
-      },
-    ],
+  const isClient = user.role === "client";
+  const isCompany = user.role === "company";
+  const isTalent = user.role === "talent";
+
+  const dashboardUrl =
+    isClient
+      ? "/dashboard/client"
+      : isCompany
+        ? "/company/dashboard"
+        : "/dashboard/talent";
+
+  const overviewNav = [
+    {
+      title: isCompany ? "Company Dashboard" : "Dashboard",
+      url: dashboardUrl,
+      icon: isCompany ? Building2 : LayoutDashboard,
+    },
+    {
+      title: "Messages",
+      url: "/dashboard/messages",
+      icon: MessageSquare,
+    },
+  ];
+
+  const clientNav = [
+    { title: "Projects", url: "/dashboard/client", icon: Briefcase },
+    { title: "Create Project", url: "/dashboard/client/projects/create", icon: Sparkles },
+    { title: "Payments", url: "/dashboard/client/payments", icon: CreditCard },
+  ];
+
+  const talentNav = [
+    { title: "My Work", url: "/dashboard/talent", icon: Briefcase },
+    { title: "Browse Jobs", url: "/dashboard/talent/jobs", icon: Search },
+    { title: "Payments", url: "/dashboard/talent/payments", icon: CreditCard },
+  ];
+
+  const companyNav = [
+    { title: "Team Management", url: "/company/team", icon: Users },
+    { title: "Priority Queue", url: "/company/priority", icon: Target },
+    { title: "Assignments", url: "/company/dashboard", icon: ClipboardList },
+    { title: "Browse Talent Jobs", url: "/dashboard/talent/jobs", icon: Search },
+  ];
+
+  const isActive = (url: string) => {
+    if (url === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === url || pathname.startsWith(`${url}/`);
   };
 
   return (
@@ -106,18 +129,103 @@ export function AppSidebar({ user }: { user: UserType }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          {data.navMain.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <SidebarGroup>
+          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {overviewNav.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)}>
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {isClient ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Client Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {clientNav.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        {isTalent ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Talent Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {talentNav.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        {isCompany ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Company Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {companyNav.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Settings" isActive={isActive("/dashboard/profile")}>
+                  <Link href="/dashboard/profile">
+                    <Settings />
+                    <span>Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -193,7 +301,7 @@ export function AppSidebar({ user }: { user: UserType }) {
                 <DropdownMenuItem
                   onClick={async () => {
                     await signOut();
-                    router.push("/auth/login");
+                    router.push("/login");
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />

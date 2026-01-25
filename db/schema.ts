@@ -229,6 +229,70 @@ export const payoutTransaction = pgTable("payout_transaction", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const companyTeam = pgTable("company_team", {
+  id: text("id").primaryKey(),
+  companyId: text("company_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  memberId: text("member_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // owner, admin, member
+  status: text("status").notNull().default("active"), // active, pending, removed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const companyInvite = pgTable("company_invite", {
+  id: text("id").primaryKey(),
+  companyId: text("company_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role").notNull().default("member"),
+  token: text("token").notNull(),
+  status: text("status").notNull().default("pending"), // pending, accepted, expired
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const companyAssignment = pgTable("company_assignment", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  memberId: text("member_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  allocation: text("allocation").default("0"),
+  status: text("status").notNull().default("assigned"), // assigned, completed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const companyAutoApply = pgTable("company_auto_apply", {
+  id: text("id").primaryKey(),
+  companyId: text("company_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  focusSkills: text("focus_skills"),
+  minBudget: text("min_budget"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const companyPriorityInterest = pgTable("company_priority_interest", {
+  id: text("id").primaryKey(),
+  companyId: text("company_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("applied"), // applied, reviewed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 export const withdrawalRequest = pgTable("withdrawal_request", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -283,6 +347,8 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   deliveries: many(deliverySubmission),
   escrowTransactions: many(escrowTransaction),
   payoutTransactions: many(payoutTransaction),
+  companyAssignments: many(companyAssignment),
+  companyPriorityInterests: many(companyPriorityInterest),
   disputes: many(dispute),
 }));
 
@@ -378,6 +444,53 @@ export const withdrawalRequestRelations = relations(withdrawalRequest, ({ one })
   user: one(user, {
     fields: [withdrawalRequest.userId],
     references: [user.id],
+  }),
+}));
+
+export const companyTeamRelations = relations(companyTeam, ({ one }) => ({
+  company: one(user, {
+    fields: [companyTeam.companyId],
+    references: [user.id],
+  }),
+  member: one(user, {
+    fields: [companyTeam.memberId],
+    references: [user.id],
+  }),
+}));
+
+export const companyInviteRelations = relations(companyInvite, ({ one }) => ({
+  company: one(user, {
+    fields: [companyInvite.companyId],
+    references: [user.id],
+  }),
+}));
+
+export const companyAssignmentRelations = relations(companyAssignment, ({ one }) => ({
+  project: one(project, {
+    fields: [companyAssignment.projectId],
+    references: [project.id],
+  }),
+  member: one(user, {
+    fields: [companyAssignment.memberId],
+    references: [user.id],
+  }),
+}));
+
+export const companyAutoApplyRelations = relations(companyAutoApply, ({ one }) => ({
+  company: one(user, {
+    fields: [companyAutoApply.companyId],
+    references: [user.id],
+  }),
+}));
+
+export const companyPriorityInterestRelations = relations(companyPriorityInterest, ({ one }) => ({
+  company: one(user, {
+    fields: [companyPriorityInterest.companyId],
+    references: [user.id],
+  }),
+  project: one(project, {
+    fields: [companyPriorityInterest.projectId],
+    references: [project.id],
   }),
 }));
 export const ndaSignature = pgTable("nda_signature", {
