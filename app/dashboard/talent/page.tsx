@@ -286,25 +286,30 @@ export default async function TalentDashboardPage() {
               <div className="grid gap-4">
                 {data.completedJobs.length > 0 ? (
                   data.completedJobs.map((job: Project) => (
-                    <Card key={job.id} className="opacity-80">
-                      <CardContent className="p-6 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-lg line-through text-zinc-400">
-                            {job.title}
-                          </h4>
-                          <p className="text-sm text-zinc-500">
-                            Completed on{" "}
-                            {new Date(job.updatedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="bg-zinc-50 text-zinc-500"
-                        >
-                          ARCHIVED
-                        </Badge>
-                      </CardContent>
-                    </Card>
+                    <Link key={job.id} href={`/dashboard/talent/work/${job.id}`}>
+                      <Card className="opacity-80 transition hover:opacity-100 hover:border-zinc-400">
+                        <CardContent className="p-6 flex items-center justify-between">
+                          <div>
+                            <h4 className="font-bold text-lg text-zinc-500">
+                              {job.title}
+                            </h4>
+                            <p className="text-sm text-zinc-500">
+                              Completed on{" "}
+                              {new Date(job.updatedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className="bg-zinc-50 text-zinc-500"
+                            >
+                              ARCHIVED
+                            </Badge>
+                            <ChevronRight className="h-4 w-4 text-zinc-400" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))
                 ) : (
                   <div className="text-center py-12 text-zinc-500 border-2 border-dashed rounded-2xl">
