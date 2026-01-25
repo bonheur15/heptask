@@ -240,7 +240,12 @@ export default async function ClientPaymentsPage() {
                           <TableCell>${parseAmount(tx.amount).toFixed(2)}</TableCell>
                           <TableCell className="max-w-[200px] truncate text-zinc-500">{tx.note ?? "-"}</TableCell>
                           <TableCell className="text-right pr-6 text-zinc-400 text-xs">
-                            {formatDistanceToNow(tx.createdAt, { addSuffix: true })}
+                            <div className="flex items-center justify-end gap-2">
+                              <span>{formatDistanceToNow(tx.createdAt, { addSuffix: true })}</span>
+                              <Button size="sm" variant="outline" asChild>
+                                <Link href={`/dashboard/client/payments/receipts/${tx.id}`}>Receipt</Link>
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

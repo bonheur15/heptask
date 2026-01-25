@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { escrow, escrowTransaction, milestone, project, projectMessage } from "@/db/schema";
+import { escrow, escrowTransaction, milestone, payoutTransaction, project, projectMessage } from "@/db/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
@@ -28,6 +28,23 @@ const getProjectEscrowRemaining = async (projectId: string) => {
 };
 
 const ensureEscrowRow = async (userId: string) => {
+  const existing = await db.query.escrow.findFirst({
+    where: eq(escrow.userId, userId),
+  });
+
+  if (existing) return existing;
+
+  const created = await db.insert(escrow).values({
+    id: nanoid(),
+    userId,
+    balance: "0",
+    currency: "USD",
+  }).returning();
+
+  return created[0];
+};
+
+const ensureTalentEscrowRow = async (userId: string) => {
   const existing = await db.query.escrow.findFirst({
     where: eq(escrow.userId, userId),
   });
@@ -192,6 +209,23 @@ export async function releaseMilestone(formData: FormData) {
       note: targetMilestone.title,
     });
 
+    if (targetProject.talentId) {
+      const talentEscrow = await ensureTalentEscrowRow(targetProject.talentId);
+      const talentBalance = parseAmount(talentEscrow.balance) + amount;
+      await tx.update(escrow)
+        .set({ balance: formatAmount(talentBalance) })
+        .where(eq(escrow.userId, targetProject.talentId));
+
+      await tx.insert(payoutTransaction).values({
+        id: nanoid(),
+        talentId: targetProject.talentId,
+        projectId,
+        type: "milestone_release",
+        amount: formatAmount(amount),
+        note: targetMilestone.title,
+      });
+    }
+
     await tx.insert(projectMessage).values({
       id: nanoid(),
       projectId,
@@ -265,6 +299,23 @@ export async function manualRelease(formData: FormData) {
       amount: formatAmount(amount),
       note: note || "Manual release",
     });
+
+    if (targetProject.talentId) {
+      const talentEscrow = await ensureTalentEscrowRow(targetProject.talentId);
+      const talentBalance = parseAmount(talentEscrow.balance) + amount;
+      await tx.update(escrow)
+        .set({ balance: formatAmount(talentBalance) })
+        .where(eq(escrow.userId, targetProject.talentId));
+
+      await tx.insert(payoutTransaction).values({
+        id: nanoid(),
+        talentId: targetProject.talentId,
+        projectId,
+        type: "manual_release",
+        amount: formatAmount(amount),
+        note: note || "Manual release",
+      });
+    }
 
     await tx.insert(projectMessage).values({
       id: nanoid(),
