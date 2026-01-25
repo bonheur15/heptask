@@ -201,6 +201,46 @@ export const escrow = pgTable("escrow", {
     .notNull(),
 });
 
+export const escrowTransaction = pgTable("escrow_transaction", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // deposit, milestone_release, manual_release, refund
+  amount: text("amount").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const payoutTransaction = pgTable("payout_transaction", {
+  id: text("id").primaryKey(),
+  talentId: text("talent_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => project.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // milestone_release, manual_release
+  amount: text("amount").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const withdrawalRequest = pgTable("withdrawal_request", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  amount: text("amount").notNull(),
+  method: text("method").notNull(), // bank, card, crypto
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, paid
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const notification = pgTable("notification", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -241,6 +281,8 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   files: many(projectFile),
   messages: many(projectMessage),
   deliveries: many(deliverySubmission),
+  escrowTransactions: many(escrowTransaction),
+  payoutTransactions: many(payoutTransaction),
   disputes: many(dispute),
 }));
 
@@ -300,6 +342,42 @@ export const deliverySubmissionRelations = relations(deliverySubmission, ({ one 
   file: one(projectFile, {
     fields: [deliverySubmission.fileId],
     references: [projectFile.id],
+  }),
+}));
+
+export const escrowRelations = relations(escrow, ({ one }) => ({
+  user: one(user, {
+    fields: [escrow.userId],
+    references: [user.id],
+  }),
+}));
+
+export const escrowTransactionRelations = relations(escrowTransaction, ({ one }) => ({
+  user: one(user, {
+    fields: [escrowTransaction.userId],
+    references: [user.id],
+  }),
+  project: one(project, {
+    fields: [escrowTransaction.projectId],
+    references: [project.id],
+  }),
+}));
+
+export const payoutTransactionRelations = relations(payoutTransaction, ({ one }) => ({
+  talent: one(user, {
+    fields: [payoutTransaction.talentId],
+    references: [user.id],
+  }),
+  project: one(project, {
+    fields: [payoutTransaction.projectId],
+    references: [project.id],
+  }),
+}));
+
+export const withdrawalRequestRelations = relations(withdrawalRequest, ({ one }) => ({
+  user: one(user, {
+    fields: [withdrawalRequest.userId],
+    references: [user.id],
   }),
 }));
 export const ndaSignature = pgTable("nda_signature", {

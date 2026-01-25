@@ -9,6 +9,9 @@ import {
   notification,
   projectMessage,
   deliverySubmission,
+  escrowTransaction,
+  payoutTransaction,
+  withdrawalRequest,
 } from "@/db/schema";
 import { ProjectPlan as AiProjectPlanType } from "@/lib/ai/prompts"; // Import AI Plan type
 
@@ -21,6 +24,9 @@ export type ProjectFile = InferSelectModel<typeof projectFile>;
 export type Notification = InferSelectModel<typeof notification>;
 export type ProjectMessage = InferSelectModel<typeof projectMessage>;
 export type DeliverySubmission = InferSelectModel<typeof deliverySubmission>;
+export type EscrowTransaction = InferSelectModel<typeof escrowTransaction>;
+export type PayoutTransaction = InferSelectModel<typeof payoutTransaction>;
+export type WithdrawalRequest = InferSelectModel<typeof withdrawalRequest>;
 export type AiAnalysis = {
   score: number;
   strengths: string[];
