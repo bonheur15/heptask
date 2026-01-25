@@ -136,8 +136,8 @@ export async function updateClientMilestoneStatus(formData: FormData) {
     senderId: null,
     role: "system",
     body: status === "approved"
-      ? `Milestone ${targetMilestone?.title ?? milestoneId} approved by client.`
-      : `Revision requested for ${targetMilestone?.title ?? milestoneId}.`,
+      ? `Milestone ${targetMilestone?.title ?? milestoneId} approved by ${session.user.name ?? "client"}.`
+      : `Revision requested for ${targetMilestone?.title ?? milestoneId} by ${session.user.name ?? "client"}.`,
   });
 
   revalidatePath(`/dashboard/client/work/${projectId}`);
@@ -201,7 +201,7 @@ export async function reviewDelivery(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: `Delivery ${status === "approved" ? "approved" : "returned for revision"}.`,
+    body: `Delivery ${status === "approved" ? "approved" : "returned for revision"} by ${session.user.name ?? "client"}.`,
   });
 
   revalidatePath(`/dashboard/client/work/${projectId}`);

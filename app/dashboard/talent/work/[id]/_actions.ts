@@ -135,7 +135,7 @@ export async function updateTalentMilestoneStatus(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: `Milestone ${targetMilestone?.title ?? milestoneId} marked ${status.replace("_", " ")} by talent.`,
+    body: `Milestone ${targetMilestone?.title ?? milestoneId} marked ${status.replace("_", " ")} by ${session.user.name ?? "talent"}.`,
   });
 
   revalidatePath(`/dashboard/talent/work/${projectId}`);
@@ -196,7 +196,7 @@ export async function submitTalentDelivery(formData: FormData) {
     projectId,
     senderId: null,
     role: "system",
-    body: `Delivery submitted${targetMilestone ? ` for ${targetMilestone.title}` : ""}.`,
+    body: `Delivery submitted by ${session.user.name ?? "talent"}${targetMilestone ? ` for ${targetMilestone.title}` : ""}.`,
   });
 
   revalidatePath(`/dashboard/talent/work/${projectId}`);
