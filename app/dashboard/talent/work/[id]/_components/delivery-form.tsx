@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { UploadButton } from "@/components/uploadthing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface MilestoneOption {
   id: string;
@@ -21,9 +22,29 @@ interface DeliveryFormProps {
 export function DeliveryForm({ projectId, milestones, action }: DeliveryFormProps) {
   const [fileId, setFileId] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   return (
-    <form action={action} className="space-y-4">
+    <form
+      action={action}
+      className="space-y-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        startTransition(async () => {
+          try {
+            await action(formData);
+            form.reset();
+            setFileId(null);
+            setFileName(null);
+            toast.success("Delivery submitted for review.");
+          } catch (error) {
+            toast.error("Delivery submission failed.");
+          }
+        });
+      }}
+    >
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="fileId" value={fileId ?? ""} />
 
@@ -71,8 +92,9 @@ export function DeliveryForm({ projectId, milestones, action }: DeliveryFormProp
         </select>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Button className="gap-2">
-          Submit Delivery <ArrowRight className="h-4 w-4" />
+        <Button className="gap-2" disabled={isPending}>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+          {isPending ? "Submitting..." : "Submit Delivery"}
         </Button>
       </div>
     </form>

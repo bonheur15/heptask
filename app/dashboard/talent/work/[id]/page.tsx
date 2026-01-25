@@ -14,16 +14,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProjectPlan, Milestone, ProjectFile } from "@/lib/types";
 import { WorkspaceFileUploader } from "@/components/workspace-file-uploader";
 import { DeliveryForm } from "./_components/delivery-form";
+import { ChatForm } from "./_components/chat-form";
+import { MilestoneActions } from "./_components/milestone-actions";
 import {
   getTalentWorkspaceData,
-  sendTalentMessage,
   submitTalentDelivery,
-  updateTalentMilestoneStatus,
 } from "./_actions";
 
 type ActivityItem = {
@@ -322,24 +321,12 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                         <Wallet className="h-4 w-4" />
                         ${m.amount || "0"} payout
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <form action={updateTalentMilestoneStatus}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="milestoneId" value={m.id} />
-                          <input type="hidden" name="status" value="in_progress" />
-                          <Button size="sm" variant="outline" type="submit" disabled={isApproved || isCompleted || isInProgress}>
-                            Mark In Progress
-                          </Button>
-                        </form>
-                        <form action={updateTalentMilestoneStatus}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="milestoneId" value={m.id} />
-                          <input type="hidden" name="status" value="completed" />
-                          <Button size="sm" type="submit" disabled={isApproved || isCompleted}>
-                            Submit for Review
-                          </Button>
-                        </form>
-                      </div>
+                      <MilestoneActions
+                        projectId={project.id}
+                        milestoneId={m.id}
+                        disableStart={isApproved || isCompleted || isInProgress}
+                        disableSubmit={isApproved || isCompleted}
+                      />
                     </div>
                   </div>
                   );
@@ -388,24 +375,13 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                 )}
               </div>
 
-              <form action={sendTalentMessage} className="flex items-start gap-3 border-t pt-4">
-                <input type="hidden" name="projectId" value={project.id} />
+              <div className="flex items-start gap-3 border-t pt-4">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={sessionUser.image ?? ""} />
                   <AvatarFallback>{sessionUser.name?.charAt(0) || "T"}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-3">
-                  <Textarea name="message" placeholder="Send an update, ask for approval, or flag a risk..." className="min-h-[100px]" required />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" className="gap-2" type="submit">
-                      Send Update <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <span className="text-[10px] text-zinc-400">
-                      All messages are logged for dispute resolution.
-                    </span>
-                  </div>
-                </div>
-              </form>
+                <ChatForm projectId={project.id} />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

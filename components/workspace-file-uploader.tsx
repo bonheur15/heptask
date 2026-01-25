@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { UploadDropzone } from "@/components/uploadthing";
 
 interface WorkspaceFileUploaderProps {
@@ -32,9 +33,11 @@ export function WorkspaceFileUploader({ projectId, label, title, subtitle }: Wor
       }}
       onClientUploadComplete={() => {
         router.refresh();
+        toast.success("Files uploaded successfully.");
       }}
       onUploadError={(error) => {
         console.error("Upload failed:", error.message);
+        toast.error("Upload failed.");
       }}
     />
   );

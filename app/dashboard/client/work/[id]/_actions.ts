@@ -206,3 +206,49 @@ export async function reviewDelivery(formData: FormData) {
 
   revalidatePath(`/dashboard/client/work/${projectId}`);
 }
+
+export async function closeProjectAsComplete(formData: FormData) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) {
+    return;
+  }
+
+  const workspaceProject = await db.query.project.findFirst({
+    where: eq(project.id, projectId),
+    with: {
+      milestones: true,
+    },
+  });
+
+  if (!workspaceProject || workspaceProject.clientId !== session.user.id) {
+    throw new Error("Forbidden");
+  }
+
+  const hasPendingMilestones = workspaceProject.milestones.some((m) => m.status !== "approved");
+  if (hasPendingMilestones) {
+    throw new Error("All milestones must be approved before closing the project.");
+  }
+
+  await db.update(project)
+    .set({ status: "completed", updatedAt: new Date() })
+    .where(eq(project.id, projectId));
+
+  await db.insert(projectMessage).values({
+    id: nanoid(),
+    projectId,
+    senderId: null,
+    role: "system",
+    body: `Project marked completed by ${session.user.name ?? "client"}.`,
+  });
+
+  revalidatePath(`/dashboard/client/work/${projectId}`);
+  revalidatePath(`/dashboard/client/projects/${projectId}`);
+}

@@ -13,16 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProjectPlan, Milestone, ProjectFile } from "@/lib/types";
 import { WorkspaceFileUploader } from "@/components/workspace-file-uploader";
 import {
   getClientWorkspaceData,
-  reviewDelivery,
-  sendClientMessage,
-  updateClientMilestoneStatus,
 } from "./_actions";
+import { ChatForm } from "./_components/chat-form";
+import { ApprovalActions, DeliveryActions } from "./_components/approval-actions";
+import { CloseProject } from "./_components/close-project";
 
 type ApprovalQueueItem = {
   id: string;
@@ -39,6 +38,7 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
   const milestones = project.milestones;
   const totalMilestones = milestones.length;
   const approvedMilestones = milestones.filter((m) => m.status === "approved").length;
+  const canCloseProject = milestones.length > 0 && approvedMilestones === milestones.length;
   const progress = totalMilestones > 0 ? Math.round((approvedMilestones / totalMilestones) * 100) : 0;
   const pendingApprovals = milestones.filter((m) => m.status === "completed" || m.status === "in_progress").length;
 
@@ -99,7 +99,9 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
           </div>
           <p className="text-zinc-500 dark:text-zinc-400 max-w-3xl">{project.description}</p>
         </div>
-        <div className="flex flex-wrap gap-3" />
+        <div className="flex flex-wrap gap-3">
+          <CloseProject projectId={project.id} canClose={canCloseProject} />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-4">
@@ -310,24 +312,11 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                         <Wallet className="h-4 w-4" />
                         ${m.amount || "0"} payout
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <form action={updateClientMilestoneStatus}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="milestoneId" value={m.id} />
-                          <input type="hidden" name="status" value="in_progress" />
-                          <Button size="sm" variant="outline" type="submit" disabled={!isAwaitingReview}>
-                            Request Revision
-                          </Button>
-                        </form>
-                        <form action={updateClientMilestoneStatus}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="milestoneId" value={m.id} />
-                          <input type="hidden" name="status" value="approved" />
-                          <Button size="sm" type="submit" disabled={!isAwaitingReview}>
-                            Approve & Release
-                          </Button>
-                        </form>
-                      </div>
+                      <ApprovalActions
+                        projectId={project.id}
+                        milestoneId={m.id}
+                        canReview={isAwaitingReview}
+                      />
                     </div>
                   </div>
                   );
@@ -376,24 +365,13 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                 )}
               </div>
 
-              <form action={sendClientMessage} className="flex items-start gap-3 border-t pt-4">
-                <input type="hidden" name="projectId" value={project.id} />
+              <div className="flex items-start gap-3 border-t pt-4">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={sessionUser.image ?? ""} />
                   <AvatarFallback>{sessionUser.name?.charAt(0) || "C"}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-3">
-                  <Textarea name="message" placeholder="Share feedback, approvals, or blockers..." className="min-h-[100px]" required />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" className="gap-2" type="submit">
-                      Send Update <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <span className="text-[10px] text-zinc-400">
-                      Chats are AI-scanned for risk and safety.
-                    </span>
-                  </div>
-                </div>
-              </form>
+                <ChatForm projectId={project.id} />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -480,29 +458,17 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
                           </a>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <form action={reviewDelivery}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="deliveryId" value={delivery.id} />
-                          <input type="hidden" name="decision" value="revision" />
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            type="submit"
-                            disabled={delivery.status === "revision"}
-                          >
-                            Request Revision
-                          </Button>
-                        </form>
-                        <form action={reviewDelivery}>
-                          <input type="hidden" name="projectId" value={project.id} />
-                          <input type="hidden" name="deliveryId" value={delivery.id} />
-                          <input type="hidden" name="decision" value="approve" />
-                          <Button size="sm" type="submit" disabled={delivery.status === "approved"}>
-                            Approve Delivery
-                          </Button>
-                        </form>
-                      </div>
+                      <DeliveryActions
+                        projectId={project.id}
+                        deliveryId={delivery.id}
+                        status={
+                          delivery.status === "approved"
+                            ? "approved"
+                            : delivery.status === "revision"
+                              ? "revision"
+                              : "pending"
+                        }
+                      />
                     </div>
                   ))
                 ) : (
