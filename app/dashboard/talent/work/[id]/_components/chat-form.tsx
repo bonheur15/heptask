@@ -9,10 +9,19 @@ import { sendTalentMessage } from "../_actions";
 
 interface ChatFormProps {
   projectId: string;
+  disabled?: boolean;
 }
 
-export function ChatForm({ projectId }: ChatFormProps) {
+export function ChatForm({ projectId, disabled }: ChatFormProps) {
   const [isPending, startTransition] = useTransition();
+
+  if (disabled) {
+    return (
+      <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        Chat is read-only because this project is completed.
+      </div>
+    );
+  }
 
   return (
     <form

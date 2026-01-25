@@ -9,10 +9,19 @@ interface WorkspaceFileUploaderProps {
   label?: string;
   title?: string;
   subtitle?: string;
+  disabled?: boolean;
 }
 
-export function WorkspaceFileUploader({ projectId, label, title, subtitle }: WorkspaceFileUploaderProps) {
+export function WorkspaceFileUploader({ projectId, label, title, subtitle, disabled }: WorkspaceFileUploaderProps) {
   const router = useRouter();
+
+  if (disabled) {
+    return (
+      <div className="w-full rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/40">
+        Uploads are disabled because this project is completed.
+      </div>
+    );
+  }
 
   return (
     <UploadDropzone

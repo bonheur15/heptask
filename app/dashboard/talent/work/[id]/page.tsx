@@ -380,7 +380,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                   <AvatarImage src={sessionUser.image ?? ""} />
                   <AvatarFallback>{sessionUser.name?.charAt(0) || "T"}</AvatarFallback>
                 </Avatar>
-                <ChatForm projectId={project.id} />
+                <ChatForm projectId={project.id} disabled={project.status === "completed"} />
               </div>
             </CardContent>
           </Card>
@@ -432,6 +432,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
                   label="talent"
                   title="Drop files or click to upload"
                   subtitle="PDF, ZIP, PNG, or Figma links"
+                  disabled={project.status === "completed"}
                 />
                 <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 text-xs text-emerald-700 dark:text-emerald-300">
                   <ShieldCheck className="h-4 w-4 inline-block mr-2" />
