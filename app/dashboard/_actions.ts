@@ -66,10 +66,12 @@ export async function getTalentDashboardData() {
     teamMemberships.map((membership) => [membership.companyId, membership.company]),
   );
   const companyAssignments = memberAssignments
-    .filter((assignment) => companyLookup.has(assignment.project.talentId))
+    .filter((assignment) => Boolean(assignment.project.talentId) && companyLookup.has(assignment.project.talentId as string))
     .map((assignment) => ({
       ...assignment,
-      company: companyLookup.get(assignment.project.talentId) ?? null,
+      company: assignment.project.talentId
+        ? companyLookup.get(assignment.project.talentId) ?? null
+        : null,
     }));
 
   return {

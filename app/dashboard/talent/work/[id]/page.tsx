@@ -33,6 +33,12 @@ type ActivityItem = {
   date: Date;
 };
 
+type ProjectFileWithUploader = ProjectFile & {
+  uploader?: {
+    name?: string | null;
+  } | null;
+};
+
 export default async function TalentWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { project, messages, deliveries, sessionUser } = await getTalentWorkspaceData(id);
@@ -88,20 +94,31 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
   const qualityScore = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   const activityFeed: ActivityItem[] = [
-    ...messages.map((msg) => ({
-      id: `msg-${msg.id}`,
-      label: `${msg.role === "system" ? "System" : msg.sender?.name || "User"} sent a message`,
-      time: formatDistanceToNow(msg.createdAt, { addSuffix: true }),
-      status: msg.role === "system" ? "success" : "info",
-      date: msg.createdAt,
-    })),
-    ...deliveries.map((delivery) => ({
-      id: `delivery-${delivery.id}`,
-      label: `Delivery submitted${delivery.milestone ? ` for ${delivery.milestone.title}` : ""}`,
-      time: formatDistanceToNow(delivery.createdAt, { addSuffix: true }),
-      status: delivery.status === "approved" ? "success" : delivery.status === "revision" ? "warning" : "info",
-      date: delivery.createdAt,
-    })),
+    ...messages.map((msg) => {
+      const status: ActivityItem["status"] = msg.role === "system" ? "success" : "info";
+      return {
+        id: `msg-${msg.id}`,
+        label: `${msg.role === "system" ? "System" : msg.sender?.name || "User"} sent a message`,
+        time: formatDistanceToNow(msg.createdAt, { addSuffix: true }),
+        status,
+        date: msg.createdAt,
+      };
+    }),
+    ...deliveries.map((delivery) => {
+      const status: ActivityItem["status"] =
+        delivery.status === "approved"
+          ? "success"
+          : delivery.status === "revision"
+            ? "warning"
+            : "info";
+      return {
+        id: `delivery-${delivery.id}`,
+        label: `Delivery submitted${delivery.milestone ? ` for ${delivery.milestone.title}` : ""}`,
+        time: formatDistanceToNow(delivery.createdAt, { addSuffix: true }),
+        status,
+        date: delivery.createdAt,
+      };
+    }),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 4);
@@ -479,7 +496,7 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
               </CardHeader>
               <CardContent className="space-y-4">
                 {project.files.length > 0 ? (
-                  project.files.map((file: ProjectFile) => (
+                  (project.files as ProjectFileWithUploader[]).map((file) => (
                     <div key={file.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-zinc-400" />

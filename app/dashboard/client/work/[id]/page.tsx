@@ -31,6 +31,12 @@ type ApprovalQueueItem = {
   date: Date;
 };
 
+type ProjectFileWithUploader = ProjectFile & {
+  uploader?: {
+    name?: string | null;
+  } | null;
+};
+
 export default async function ClientWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { project, messages, deliveries, sessionUser } = await getClientWorkspaceData(id);
@@ -97,13 +103,21 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
     return m.dueDate < now && m.status !== "approved";
   }).length;
 
-  const approvalQueue: ApprovalQueueItem[] = milestones.map((m) => ({
-    id: m.id,
-    title: m.title,
-    status: m.status === "approved" ? "approved" : m.status === "completed" ? "in_review" : "pending",
-    due: m.dueDate ? new Date(m.dueDate).toLocaleDateString() : "N/A",
-    date: m.dueDate ?? m.createdAt,
-  }))
+  const approvalQueue: ApprovalQueueItem[] = milestones.map((m) => {
+    const status: ApprovalQueueItem["status"] =
+      m.status === "approved"
+        ? "approved"
+        : m.status === "completed"
+          ? "in_review"
+          : "pending";
+    return {
+      id: m.id,
+      title: m.title,
+      status,
+      due: m.dueDate ? new Date(m.dueDate).toLocaleDateString() : "N/A",
+      date: m.dueDate ?? m.createdAt,
+    };
+  })
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 4);
 
@@ -476,7 +490,7 @@ export default async function ClientWorkspacePage({ params }: { params: Promise<
               </CardHeader>
               <CardContent className="space-y-4">
                 {project.files.length > 0 ? (
-                  project.files.map((file: ProjectFile) => (
+                  (project.files as ProjectFileWithUploader[]).map((file) => (
                     <div key={file.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-zinc-400" />

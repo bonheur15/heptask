@@ -73,7 +73,7 @@ export default async function MessagesPage() {
                   <p className="text-xs text-zinc-500">
                     {message.sender?.name ?? "User"} • {formatDistanceToNow(message.createdAt, { addSuffix: true })}
                   </p>
-                  <p className="text-sm text-zinc-500 line-clamp-2">{message.content}</p>
+                  <p className="text-sm text-zinc-500 line-clamp-2">{message.body}</p>
                 </div>
                 <Button size="sm" variant="outline" asChild>
                   <Link href={`${workspacePrefix}/${message.projectId}`}>Open Workspace</Link>

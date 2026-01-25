@@ -24,19 +24,14 @@ const formatBytes = (bytes: number) => {
 };
 
 export const fileRouter = {
-  projectWorkspaceFiles: uploadthing(
-    {
-      image: { maxFileCount: 6, maxFileSize: "8MB" },
-      pdf: { maxFileCount: 6, maxFileSize: "16MB" },
-      text: { maxFileCount: 6, maxFileSize: "8MB" },
-      audio: { maxFileCount: 4, maxFileSize: "32MB" },
-      video: { maxFileCount: 2, maxFileSize: "64MB" },
-      blob: { maxFileCount: 6, maxFileSize: "16MB" },
-    },
-    {
-      awaitServerData: true,
-    },
-  )
+  projectWorkspaceFiles: uploadthing({
+    image: { maxFileCount: 6, maxFileSize: "8MB" },
+    pdf: { maxFileCount: 6, maxFileSize: "16MB" },
+    text: { maxFileCount: 6, maxFileSize: "8MB" },
+    audio: { maxFileCount: 4, maxFileSize: "32MB" },
+    video: { maxFileCount: 2, maxFileSize: "64MB" },
+    blob: { maxFileCount: 6, maxFileSize: "16MB" },
+  })
     .input(inputSchema)
     .middleware(async ({ input }) => {
       const session = await auth.api.getSession({

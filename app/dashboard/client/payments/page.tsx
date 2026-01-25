@@ -37,10 +37,14 @@ type ProjectSummary = {
   milestones: Milestone[];
 };
 
+type ProjectWithMilestones = Project & {
+  milestones: Milestone[];
+};
+
 export default async function ClientPaymentsPage() {
   const { projects, transactions, escrow } = await getClientPaymentsData();
 
-  const projectSummaries: ProjectSummary[] = projects.map((project) => {
+  const projectSummaries: ProjectSummary[] = projects.map((project: ProjectWithMilestones) => {
     const related = transactions.filter((item) => item.projectId === project.id);
     const deposits = related.filter((item) => item.type === "deposit").reduce((sum, item) => sum + parseAmount(item.amount), 0);
     const releases = related.filter((item) => item.type === "milestone_release").reduce((sum, item) => sum + parseAmount(item.amount), 0);
@@ -56,7 +60,7 @@ export default async function ClientPaymentsPage() {
       refunds,
       manualReleased,
       remaining,
-      milestones: project.milestones,
+      milestones: project.milestones ?? [],
     };
   });
 
@@ -271,10 +275,10 @@ export default async function ClientPaymentsPage() {
             </CardHeader>
             <CardContent>
               <MilestoneReleaseList
-                projects={projects.map((project: Project) => ({
+                projects={projects.map((project: ProjectWithMilestones) => ({
                   id: project.id,
                   title: project.title,
-                  milestones: project.milestones,
+                  milestones: project.milestones ?? [],
                 }))}
               />
             </CardContent>
