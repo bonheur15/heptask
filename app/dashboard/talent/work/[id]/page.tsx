@@ -54,6 +54,37 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
     const isComplete = m.status === "approved" || m.status === "completed";
     return !isComplete && m.dueDate < now;
   }).length;
+  const deliveryCount = deliveries.length;
+  const latestMessage = messages
+    .slice()
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const latestDelivery = deliveries
+    .slice()
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const latestActivity = latestMessage && latestDelivery
+    ? latestMessage.createdAt > latestDelivery.createdAt
+      ? latestMessage
+      : latestDelivery
+    : latestMessage ?? latestDelivery;
+  const latestActivityLabel = latestActivity
+    ? "Latest activity " + formatDistanceToNow(latestActivity.createdAt, { addSuffix: true })
+    : "No recent activity";
+  const recentChangeLog = [
+    ...deliveries.map((delivery) => ({
+      id: `delivery-${delivery.id}`,
+      label: `Delivery submitted${delivery.milestone ? ` for ${delivery.milestone.title}` : ""}.`,
+      at: delivery.createdAt,
+    })),
+    ...messages.map((msg) => ({
+      id: `message-${msg.id}`,
+      label: msg.role === "system"
+        ? msg.body
+        : `${msg.sender?.name || "User"} sent a message.`,
+      at: msg.createdAt,
+    })),
+  ]
+    .sort((a, b) => b.at.getTime() - a.at.getTime())
+    .slice(0, 4);
   const qualityScore = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   const activityFeed: ActivityItem[] = [
@@ -178,6 +209,59 @@ export default async function TalentWorkspacePage({ params }: { params: Promise<
         <TabsContent value="overview" className="mt-0 space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Completion Summary</CardTitle>
+                  <CardDescription>Progress and delivery history for this engagement.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-xl border p-4 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-400">Milestones Completed</p>
+                      <p className="text-2xl font-bold text-emerald-600">{completedMilestones}/{milestones.length}</p>
+                      <p className="text-[11px] text-zinc-500">Overall project completion.</p>
+                    </div>
+                    <div className="rounded-xl border p-4 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-400">Deliveries Submitted</p>
+                      <p className="text-2xl font-bold text-blue-600">{deliveryCount}</p>
+                      <p className="text-[11px] text-zinc-500">Total delivery packages.</p>
+                    </div>
+                    <div className="rounded-xl border p-4 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-400">Latest Activity</p>
+                      <p className="text-sm font-semibold">{latestActivityLabel}</p>
+                      <p className="text-[11px] text-zinc-500">Tracks updates and reviews.</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-xl border p-4 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-400">Escrow Snapshot</p>
+                      <p className="text-sm font-semibold">Projected payout ${(budget - estimatedFee).toFixed(0)}</p>
+                      <p className="text-sm font-semibold">Platform fee ${estimatedFee.toFixed(0)}</p>
+                      <p className="text-[11px] text-zinc-500">Final payout after close.</p>
+                    </div>
+                    <div className="rounded-xl border p-4 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-400">Change Log</p>
+                      {recentChangeLog.length > 0 ? (
+                        <ul className="space-y-2 text-xs text-zinc-600">
+                          {recentChangeLog.map((entry) => (
+                            <li key={entry.id} className="flex items-start gap-2">
+                              <span className="text-zinc-400">•</span>
+                              <span>
+                                {entry.label}
+                                <span className="block text-[10px] text-zinc-400">
+                                  {formatDistanceToNow(entry.at, { addSuffix: true })}
+                                </span>
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-zinc-500">No recorded changes yet.</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>AI Project Brief</CardTitle>
