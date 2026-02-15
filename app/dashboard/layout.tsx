@@ -21,8 +21,16 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  if (session.user.isSuspended) {
+    redirect("/login");
+  }
+
   if (!session.user.role) {
     return <RoleSelection />;
+  }
+
+  if (session.user.role === "super_admin") {
+    redirect("/admin");
   }
 
   const sidebarUser: UserType = {
@@ -36,6 +44,9 @@ export default async function DashboardLayout({
     companyName: session.user.companyName ?? null,
     accountTier: session.user.accountTier ?? "free",
     accountTierStatus: session.user.accountTierStatus ?? "active",
+    isSuspended: session.user.isSuspended ?? false,
+    suspensionReason: session.user.suspensionReason ?? null,
+    suspendedAt: session.user.suspendedAt ?? null,
   };
 
   return (

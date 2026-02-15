@@ -20,6 +20,10 @@ export default async function CompanyLayout({
     redirect("/login");
   }
 
+  if (session.user.isSuspended) {
+    redirect("/login");
+  }
+
   if (session.user.role !== "company") {
     if (session.user.role === "client") {
       redirect("/dashboard/client");
@@ -39,6 +43,9 @@ export default async function CompanyLayout({
     companyName: session.user.companyName ?? null,
     accountTier: session.user.accountTier ?? "free",
     accountTierStatus: session.user.accountTierStatus ?? "active",
+    isSuspended: session.user.isSuspended ?? false,
+    suspensionReason: session.user.suspensionReason ?? null,
+    suspendedAt: session.user.suspendedAt ?? null,
   };
 
   return (
