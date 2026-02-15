@@ -70,6 +70,14 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      accountTier: {
+        type: "string",
+        required: false,
+      },
+      accountTierStatus: {
+        type: "string",
+        required: false,
+      },
     },
   },
   socialProviders: {

@@ -180,6 +180,40 @@ export default async function Home() {
 
       <section className="px-4 pb-20">
         <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Account Upgrades</p>
+              <h2 className="mt-3 text-3xl font-[var(--font-display)]">Scale your account as your workload grows.</h2>
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                Upgrade to Pro for faster operations or Enterprise for company-priority tools and team governance.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link href="/dashboard/billing" className="inline-flex items-center gap-2 rounded-full bg-[var(--edge)] px-6 py-3 text-sm font-semibold text-white">
+                  View Billing <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/pricing" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+                  Compare Plans
+                </Link>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 p-4">
+                <p className="text-xs uppercase tracking-widest text-[var(--muted)]">Pro</p>
+                <p className="mt-2 text-2xl font-[var(--font-display)]">$49</p>
+                <p className="mt-2 text-xs text-[var(--muted)]">Priority placement and advanced analytics.</p>
+              </div>
+              <div className="rounded-2xl border border-black/10 p-4">
+                <p className="text-xs uppercase tracking-widest text-[var(--muted)]">Enterprise</p>
+                <p className="mt-2 text-2xl font-[var(--font-display)]">$199</p>
+                <p className="mt-2 text-xs text-[var(--muted)]">Team controls, company workflows, and priority visibility.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Testimonials</p>
