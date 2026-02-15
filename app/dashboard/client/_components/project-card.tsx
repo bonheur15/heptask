@@ -45,6 +45,11 @@ export function ProjectCard({ project, publicationPaymentStatus }: ProjectCardPr
     paid: "PAYMENT PAID",
   };
   const showPaymentBadge = project.status === "draft" && !!publicationPaymentStatus;
+  const paymentHint: Record<string, string> = {
+    processing: "Checkout started, waiting for confirmation.",
+    failed: "Last payment attempt failed. Open project to retry.",
+    paid: "Payment confirmed. Ready for activation.",
+  };
 
   return (
     <Card className="group transition-all hover:border-zinc-400 dark:hover:border-zinc-600">
@@ -86,6 +91,11 @@ export function ProjectCard({ project, publicationPaymentStatus }: ProjectCardPr
             </span>
           </div>
         </div>
+        {showPaymentBadge ? (
+          <div className="mt-3 rounded-lg border border-dashed p-2 text-[11px] text-zinc-500">
+            {paymentHint[publicationPaymentStatus] ?? "Payment status updated recently."}
+          </div>
+        ) : null}
       </CardContent>
       <CardFooter className="pt-0">
         <Button

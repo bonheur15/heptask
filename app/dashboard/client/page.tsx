@@ -34,6 +34,16 @@ export default async function ClientDashboardPage() {
       latestPaymentStatusByProject.set(payment.projectId, payment.status);
     }
   }
+  const draftQueue = data.projects.draft.map((project) => ({
+    ...project,
+    paymentStatus: latestPaymentStatusByProject.get(project.id) ?? "unpaid",
+  }));
+  const publishQueueStats = {
+    ready: draftQueue.filter((item) => item.paymentStatus === "paid").length,
+    pending: draftQueue.filter((item) => item.paymentStatus === "processing").length,
+    failed: draftQueue.filter((item) => item.paymentStatus === "failed").length,
+    unpaid: draftQueue.filter((item) => item.paymentStatus === "unpaid").length,
+  };
 
   const projectStats = [
     {
@@ -79,6 +89,11 @@ export default async function ClientDashboardPage() {
             <Link href="/dashboard/payments">
               <Wallet className="mr-2 h-4 w-4" />
               Escrow: {data.escrow.balance} {data.escrow.currency}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/billing">
+              Upgrade Account
             </Link>
           </Button>
           <Button
@@ -201,6 +216,70 @@ export default async function ClientDashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="space-y-1">
+                <CardTitle>Publishing Queue</CardTitle>
+                <CardDescription>
+                  Drafts waiting for payment confirmation before going live.
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard/client/projects/create">Create Draft</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="rounded-xl border p-3">
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-400">Ready</p>
+                  <p className="text-lg font-semibold text-emerald-600">{publishQueueStats.ready}</p>
+                </div>
+                <div className="rounded-xl border p-3">
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-400">Pending</p>
+                  <p className="text-lg font-semibold text-amber-600">{publishQueueStats.pending}</p>
+                </div>
+                <div className="rounded-xl border p-3">
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-400">Failed</p>
+                  <p className="text-lg font-semibold text-red-600">{publishQueueStats.failed}</p>
+                </div>
+                <div className="rounded-xl border p-3">
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-400">Unpaid</p>
+                  <p className="text-lg font-semibold text-zinc-700 dark:text-zinc-200">{publishQueueStats.unpaid}</p>
+                </div>
+              </div>
+
+              {draftQueue.length > 0 ? (
+                <div className="space-y-2">
+                  {draftQueue.slice(0, 4).map((item) => (
+                    <div key={item.id} className="flex items-center justify-between rounded-xl border p-3">
+                      <div>
+                        <p className="text-sm font-semibold">{item.title}</p>
+                        <p className="text-[11px] text-zinc-500">
+                          Budget {item.budget ? `$${item.budget}` : "Not set"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={item.paymentStatus === "failed" ? "destructive" : "secondary"}
+                          className="uppercase text-[10px] tracking-widest"
+                        >
+                          {item.paymentStatus}
+                        </Badge>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/dashboard/client/projects/${item.id}`}>Open</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed p-8 text-center">
+                  <p className="text-sm text-zinc-500">No drafts in queue. Create a project and publish when ready.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="space-y-1">
                 <CardTitle>Recent Messages</CardTitle>
                 <CardDescription>
                   Stay in touch with your talents.
@@ -216,6 +295,9 @@ export default async function ClientDashboardPage() {
                 <p className="text-sm text-zinc-500">
                   No recent messages to display.
                 </p>
+                <Button asChild variant="link" className="mt-2">
+                  <Link href="/dashboard/messages">Open Messages</Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

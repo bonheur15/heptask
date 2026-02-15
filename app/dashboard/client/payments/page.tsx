@@ -76,6 +76,9 @@ export default async function ClientPaymentsPage() {
   const activeMilestones = projectSummaries.flatMap((project) =>
     project.milestones.filter((m) => m.status === "completed"),
   ).length;
+  const totalEscrowRemaining = projectSummaries.reduce((sum, item) => sum + item.remaining, 0);
+  const releaseRate = totals.deposits > 0 ? (totals.releases / totals.deposits) * 100 : 0;
+  const refundRate = totals.deposits > 0 ? (totals.refunds / totals.deposits) * 100 : 0;
 
   return (
     <div className="space-y-8 pb-10">
@@ -158,6 +161,32 @@ export default async function ClientPaymentsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-0 space-y-6">
+          <Card className="border-none bg-gradient-to-r from-zinc-900 to-zinc-700 text-white">
+            <CardHeader>
+              <CardTitle>Escrow Health Snapshot</CardTitle>
+              <CardDescription className="text-white/70">
+                Live view of payouts, refunds, and available escrow liquidity.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-white/20 bg-white/5 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/60">Release Rate</p>
+                <p className="text-2xl font-semibold">{releaseRate.toFixed(1)}%</p>
+                <p className="text-xs text-white/70">Percentage of deposits already released.</p>
+              </div>
+              <div className="rounded-xl border border-white/20 bg-white/5 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/60">Refund Rate</p>
+                <p className="text-2xl font-semibold">{refundRate.toFixed(1)}%</p>
+                <p className="text-xs text-white/70">Portion of funds moved back to client.</p>
+              </div>
+              <div className="rounded-xl border border-white/20 bg-white/5 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-white/60">Open Escrow</p>
+                <p className="text-2xl font-semibold">${totalEscrowRemaining.toFixed(2)}</p>
+                <p className="text-xs text-white/70">Available for milestone and manual releases.</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-6">
             <Card>
               <CardHeader>
@@ -194,6 +223,12 @@ export default async function ClientPaymentsPage() {
                           <p className="uppercase tracking-widest text-[10px] text-zinc-400">Remaining</p>
                           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">${project.remaining.toFixed(2)}</p>
                         </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500"
+                          style={{ width: `${project.budget > 0 ? Math.min(((project.releases + project.manualReleased) / project.budget) * 100, 100) : 0}%` }}
+                        />
                       </div>
                       <Button size="sm" variant="outline" asChild>
                         <Link href={`/dashboard/client/work/${project.id}`}>Open workspace</Link>
