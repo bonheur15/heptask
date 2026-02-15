@@ -96,6 +96,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   notifications: many(notification),
   publicationPayments: many(projectPublicationPayment),
   accountUpgradePayments: many(accountUpgradePayment),
+  brainstormSessions: many(projectBrainstormSession),
 }));
 
 export const project = pgTable("project", {
@@ -139,6 +140,42 @@ export const projectPublicationPayment = pgTable("project_publication_payment", 
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+});
+
+export const projectBrainstormSession = pgTable("project_brainstorm_session", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  objective: text("objective"),
+  modelId: text("model_id").notNull().default("gemini-2.5-flash-lite-preview-09-2025"),
+  mode: text("mode").notNull().default("advanced"), // fast, advanced
+  status: text("status").notNull().default("active"), // active, archived, converted
+  sourceLinks: text("source_links"), // JSON array of strings
+  draftTitle: text("draft_title"),
+  draftDescription: text("draft_description"),
+  draftBudget: text("draft_budget"),
+  draftDeadline: timestamp("draft_deadline"),
+  draftPlan: text("draft_plan"), // JSON string of ProjectPlan
+  lastAssistantSummary: text("last_assistant_summary"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const projectBrainstormMessage = pgTable("project_brainstorm_message", {
+  id: text("id").primaryKey(),
+  sessionId: text("session_id")
+    .notNull()
+    .references(() => projectBrainstormSession.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // user, assistant, system
+  tool: text("tool"), // scope, technical, budget, timeline, risks, references
+  body: text("body").notNull(),
+  references: text("references"), // JSON array [{ title, url, note }]
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const accountUpgradePayment = pgTable("account_upgrade_payment", {
@@ -422,6 +459,21 @@ export const accountUpgradePaymentRelations = relations(accountUpgradePayment, (
   user: one(user, {
     fields: [accountUpgradePayment.userId],
     references: [user.id],
+  }),
+}));
+
+export const projectBrainstormSessionRelations = relations(projectBrainstormSession, ({ one, many }) => ({
+  user: one(user, {
+    fields: [projectBrainstormSession.userId],
+    references: [user.id],
+  }),
+  messages: many(projectBrainstormMessage),
+}));
+
+export const projectBrainstormMessageRelations = relations(projectBrainstormMessage, ({ one }) => ({
+  session: one(projectBrainstormSession, {
+    fields: [projectBrainstormMessage.sessionId],
+    references: [projectBrainstormSession.id],
   }),
 }));
 

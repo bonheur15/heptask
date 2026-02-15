@@ -21,6 +21,7 @@ import {
   Settings2,
   HelpCircle,
   Zap,
+  WandSparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +90,12 @@ export default async function ClientDashboardPage() {
             <Link href="/dashboard/payments">
               <Wallet className="mr-2 h-4 w-4" />
               Escrow: {data.escrow.balance} {data.escrow.currency}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/client/analysis">
+              <WandSparkles className="mr-2 h-4 w-4" />
+              Analysis Lab
             </Link>
           </Button>
           <Button
