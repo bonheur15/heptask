@@ -14,6 +14,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  WandSparkles,
   Target,
   Users,
   Crown,
@@ -84,6 +85,7 @@ export function AppSidebar({ user }: { user: UserType }) {
 
   const clientNav = [
     { title: "Projects", url: "/dashboard/client", icon: Briefcase },
+    { title: "Analysis Lab", url: "/dashboard/client/analysis", icon: WandSparkles },
     { title: "Create Project", url: "/dashboard/client/projects/create", icon: Sparkles },
     { title: "Payments", url: "/dashboard/client/payments", icon: CreditCard },
   ];
