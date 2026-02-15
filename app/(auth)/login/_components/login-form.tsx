@@ -29,7 +29,7 @@ export default function LoginForm({ statusMessage }: Props) {
       toast.error(error.message || "Failed to sign in.");
     } else {
       toast.success("Signed in successfully!");
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     }
     setIsLoading(false);

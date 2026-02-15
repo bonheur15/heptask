@@ -11,7 +11,7 @@ export type SignInState = {
   message?: string;
 };
 
-const getCallbackUrl = () => `${getBaseUrl()}/login?verified=1`;
+const getCallbackUrl = () => `${getBaseUrl()}/dashboard`;
 
 export const signIn = async (
   _: SignInState,
@@ -40,12 +40,12 @@ export const signIn = async (
     return { error: "An unexpected error occurred during sign in." };
   }
 
-  redirect("/");
+  redirect("/dashboard");
 };
 
 export const signInWithGoogle = async () => {
   const result = await auth.api.signInSocial({
-    body: { provider: "google" },
+    body: { provider: "google", callbackURL: `${getBaseUrl()}/dashboard` },
   });
   if (!result.url) {
     throw new Error("Google sign-in is not available.");
