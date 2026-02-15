@@ -7,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
+import { isCompanyExclusiveProject } from "@/lib/projects/visibility";
 export type ProposedMilestone = {
   id: string;
   title: string;
@@ -30,6 +31,12 @@ export async function getJobDetails(projectId: string) {
   });
 
   if (!job) throw new Error("Job not found");
+  if (job.status !== "active") throw new Error("This job is not open.");
+
+  const isCompany = session.user.role === "company";
+  if (!isCompany && isCompanyExclusiveProject(job.companyExclusiveUntil)) {
+    throw new Error("This project is currently visible to company-priority members only.");
+  }
 
   const signature = await db.query.ndaSignature.findFirst({
     where: and(
@@ -60,6 +67,16 @@ export async function signNda(projectId: string) {
 
   if (!session?.user) throw new Error("Unauthorized");
 
+  const targetProject = await db.query.project.findFirst({
+    where: eq(project.id, projectId),
+  });
+  if (!targetProject || targetProject.status !== "active") {
+    throw new Error("Project is not open for applications.");
+  }
+  if (session.user.role !== "company" && isCompanyExclusiveProject(targetProject.companyExclusiveUntil)) {
+    throw new Error("This project is in the company-priority window.");
+  }
+
   await db.insert(ndaSignature).values({
     id: nanoid(),
     projectId,
@@ -82,6 +99,16 @@ export async function submitApplication(data: {
   });
 
   if (!session?.user) throw new Error("Unauthorized");
+
+  const targetProject = await db.query.project.findFirst({
+    where: eq(project.id, data.projectId),
+  });
+  if (!targetProject || targetProject.status !== "active") {
+    throw new Error("Project is not open for applications.");
+  }
+  if (session.user.role !== "company" && isCompanyExclusiveProject(targetProject.companyExclusiveUntil)) {
+    throw new Error("This project is in the company-priority window.");
+  }
 
   // Verify NDA is signed
   const signature = await db.query.ndaSignature.findFirst({

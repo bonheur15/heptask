@@ -7,6 +7,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { createFlutterwaveTransfer } from "@/lib/payments/flutterwave";
 
 const parseAmount = (value: string) => {
   const normalized = value.replace(/[^0-9.]/g, "");
@@ -83,19 +84,28 @@ export async function requestWithdrawal(formData: FormData) {
   const amount = parseAmount(String(formData.get("amount") ?? ""));
   const method = String(formData.get("method") ?? "").trim();
   const note = String(formData.get("note") ?? "").trim();
+  const accountBank = String(formData.get("accountBank") ?? "").trim();
+  const accountNumber = String(formData.get("accountNumber") ?? "").trim();
+  const accountName = String(formData.get("accountName") ?? "").trim();
+  const requestedCurrency = String(formData.get("currency") ?? "").trim().toUpperCase();
 
   if (amount <= 0 || !method) {
     return;
   }
+  if (method === "bank" && (!accountBank || !accountNumber || !accountName)) {
+    throw new Error("Bank code, account number, and account name are required for transfer.");
+  }
 
   const wallet = await ensureEscrowRow(session.user.id);
   const balance = parseAmount(wallet.balance);
+  const currency = requestedCurrency || wallet.currency || "USD";
 
   if (amount > balance) {
     throw new Error("Insufficient balance.");
   }
 
   const newBalance = balance - amount;
+  const requestId = nanoid();
 
   await db.transaction(async (tx) => {
     await tx.update(escrow)
@@ -103,14 +113,50 @@ export async function requestWithdrawal(formData: FormData) {
       .where(eq(escrow.userId, session.user.id));
 
     await tx.insert(withdrawalRequest).values({
-      id: nanoid(),
+      id: requestId,
       userId: session.user.id,
       amount: formatAmount(amount),
       method,
       note: note || null,
-      status: "pending",
+      status: method === "bank" ? "processing" : "pending",
+      currency,
+      accountBank: accountBank || null,
+      accountNumber: accountNumber || null,
+      accountName: accountName || null,
     });
   });
+
+  if (method === "bank") {
+    const reference = `heptadev-withdrawal-${requestId}`;
+
+    try {
+      const transfer = await createFlutterwaveTransfer({
+        accountBank,
+        accountNumber,
+        amount,
+        currency,
+        reference,
+        narration: note || `Heptadev withdrawal ${requestId.slice(0, 8)}`,
+      });
+
+      await db.update(withdrawalRequest)
+        .set({
+          status: "paid",
+          flutterwaveTransferId: String(transfer.id),
+          flutterwaveReference: transfer.reference,
+          processingError: null,
+        })
+        .where(eq(withdrawalRequest.id, requestId));
+    } catch (error) {
+      await db.update(withdrawalRequest)
+        .set({
+          status: "processing",
+          flutterwaveReference: reference,
+          processingError: error instanceof Error ? error.message : "Unknown transfer error",
+        })
+        .where(eq(withdrawalRequest.id, requestId));
+    }
+  }
 
   revalidatePath("/dashboard/talent/payments");
 }

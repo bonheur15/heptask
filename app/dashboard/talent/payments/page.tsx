@@ -19,7 +19,7 @@ export default async function TalentPaymentsPage() {
   const { wallet, payouts, withdrawals, projects } = await getTalentPaymentsData();
 
   const totalEarned = payouts.reduce((sum, item) => sum + parseAmount(item.amount), 0);
-  const pendingWithdrawals = withdrawals.filter((item) => item.status === "pending").length;
+  const pendingWithdrawals = withdrawals.filter((item) => item.status === "pending" || item.status === "processing").length;
   const latestPayout = payouts[0];
 
   return (

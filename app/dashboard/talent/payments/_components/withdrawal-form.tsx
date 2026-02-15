@@ -42,10 +42,26 @@ export function WithdrawalForm() {
           >
             <option value="">Select method</option>
             <option value="bank">Bank Transfer</option>
-            <option value="card">Card Payout</option>
-            <option value="crypto">Crypto Wallet</option>
           </select>
         </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Bank Code</label>
+          <Input name="accountBank" placeholder="e.g. 044" required />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Account Number</label>
+          <Input name="accountNumber" placeholder="0123456789" required />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Currency</label>
+          <Input name="currency" placeholder="USD" defaultValue="USD" required />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Account Name</label>
+        <Input name="accountName" placeholder="Account holder name" required />
       </div>
       <div className="space-y-2">
         <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Note</label>
