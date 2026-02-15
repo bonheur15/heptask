@@ -14,7 +14,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getClientPaymentsData } from "./_actions";
-import { DepositForm } from "./_components/deposit-form";
 import { ManualReleaseForm } from "./_components/manual-release-form";
 import { RefundForm } from "./_components/refund-form";
 import { MilestoneReleaseList } from "./_components/milestone-release-list";
@@ -159,8 +158,8 @@ export default async function ClientPaymentsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-0 space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
+          <div className="grid gap-6">
+            <Card>
               <CardHeader>
                 <CardTitle>Project Escrow Overview</CardTitle>
                 <CardDescription>Track deposits, releases, and remaining escrow per project.</CardDescription>
@@ -204,15 +203,6 @@ export default async function ClientPaymentsPage() {
                 ) : (
                   <p className="text-sm text-zinc-500">No projects available yet.</p>
                 )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Deposit Funds</CardTitle>
-                <CardDescription>Add escrow for a project before work begins.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DepositForm projects={projects.map((project) => ({ id: project.id, title: project.title }))} />
               </CardContent>
             </Card>
           </div>

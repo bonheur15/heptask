@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
 import { ProjectPlan } from "@/lib/types";
+import { startPublicationCheckoutForProject } from "../create/_actions";
 
 export async function getProjectDetails(projectId: string) {
   const session = await auth.api.getSession({
@@ -107,4 +108,23 @@ export async function acceptApplicant(projectId: string, applicantId: string, ta
   });
 
   revalidatePath(`/dashboard/client/projects/${projectId}`);
+}
+
+export async function payAndPublishProject(projectId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const currentProject = await db.query.project.findFirst({
+    where: eq(project.id, projectId),
+  });
+  if (!currentProject || currentProject.clientId !== session.user.id) {
+    throw new Error("Project not found.");
+  }
+  if (currentProject.status === "active") {
+    throw new Error("Project is already active.");
+  }
+
+  return startPublicationCheckoutForProject(projectId);
 }

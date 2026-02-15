@@ -27,6 +27,13 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function ClientDashboardPage() {
   const data = await getClientDashboardData();
+  const latestPaymentStatusByProject = new Map<string, string>();
+  for (const payment of data.publicationPayments) {
+    if (!payment.projectId) continue;
+    if (!latestPaymentStatusByProject.has(payment.projectId)) {
+      latestPaymentStatusByProject.set(payment.projectId, payment.status);
+    }
+  }
 
   const projectStats = [
     {
@@ -134,7 +141,11 @@ export default async function ClientDashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {data.projects.active.length > 0 ? (
                   data.projects.active.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      publicationPaymentStatus={latestPaymentStatusByProject.get(project.id)}
+                    />
                   ))
                 ) : (
                   <div className="sm:col-span-2 flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-2xl bg-zinc-50/30 dark:bg-zinc-900/10">
@@ -153,7 +164,11 @@ export default async function ClientDashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {data.projects.draft.length > 0 ? (
                   data.projects.draft.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      publicationPaymentStatus={latestPaymentStatusByProject.get(project.id)}
+                    />
                   ))
                 ) : (
                   <div className="sm:col-span-2 flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-2xl">
@@ -167,7 +182,11 @@ export default async function ClientDashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {data.projects.maintenance.length > 0 ? (
                   data.projects.maintenance.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      publicationPaymentStatus={latestPaymentStatusByProject.get(project.id)}
+                    />
                   ))
                 ) : (
                   <div className="sm:col-span-2 flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-2xl">
