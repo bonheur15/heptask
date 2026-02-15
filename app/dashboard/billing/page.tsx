@@ -23,7 +23,7 @@ export default async function BillingPage() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billing & Plan</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Billing & Plans</h1>
           <p className="text-zinc-500 dark:text-zinc-400">
             Upgrade your account capabilities and manage plan payments.
           </p>

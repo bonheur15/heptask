@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   BadgeCheck,
-  Bell,
   Briefcase,
   Building2,
   ChevronsUpDown,
@@ -28,7 +27,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -228,7 +226,7 @@ export function AppSidebar({ user }: { user: UserType }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Billing" isActive={isActive("/dashboard/billing")}>
+                <SidebarMenuButton asChild tooltip="Billing & Plans" isActive={isActive("/dashboard/billing")}>
                   <Link href="/dashboard/billing">
                     <CreditCard />
                     <span>Billing & Plans</span>
@@ -246,17 +244,9 @@ export function AppSidebar({ user }: { user: UserType }) {
               <Crown className="h-3.5 w-3.5 text-amber-500" />
               {tierLabel}
             </div>
-            <Link href="/dashboard/billing" className="text-[11px] font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50">
-              Manage
-            </Link>
+            <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">Account Plan</span>
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <Link
-              href="/dashboard/billing"
-              className="inline-flex h-8 flex-1 items-center justify-center rounded-md border border-zinc-200 bg-white text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            >
-              Billing & Plans
-            </Link>
+          <div className="flex items-center justify-end gap-2">
             <ThemeToggle />
           </div>
         </div>
@@ -303,26 +293,12 @@ export function AppSidebar({ user }: { user: UserType }) {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-              <DropdownMenuGroup>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile">
-                      <BadgeCheck className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/billing">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Billing & Plans
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/messages">
-                      <Bell className="mr-2 h-4 w-4" />
-                      Messages
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <BadgeCheck className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={async () => {

@@ -26,7 +26,7 @@ export default async function BillingCallbackPage({ searchParams }: { searchPara
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link href="/dashboard/billing">Back to billing</Link>
+              <Link href="/dashboard/billing">Back to Billing & Plans</Link>
             </Button>
           </CardContent>
         </Card>
@@ -55,7 +55,7 @@ export default async function BillingCallbackPage({ searchParams }: { searchPara
           <CardContent className="space-y-4">
             <p className="text-sm text-zinc-500">{error instanceof Error ? error.message : "Unknown error"}</p>
             <Button asChild>
-              <Link href="/dashboard/billing">Return to billing</Link>
+              <Link href="/dashboard/billing">Return to Billing & Plans</Link>
             </Button>
           </CardContent>
         </Card>

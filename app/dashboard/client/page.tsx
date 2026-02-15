@@ -91,11 +91,6 @@ export default async function ClientDashboardPage() {
               Escrow: {data.escrow.balance} {data.escrow.currency}
             </Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/dashboard/billing">
-              Upgrade Account
-            </Link>
-          </Button>
           <Button
             asChild
             className="rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
