@@ -90,7 +90,7 @@ export default function EnterprisePage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/dashboard/billing" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--edge)]">
-                <Crown className="h-4 w-4" /> Upgrade to Enterprise
+                <Crown className="h-4 w-4" /> Billing & Plans
               </Link>
               <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white">
                 Join as Company <ArrowRight className="h-4 w-4" />

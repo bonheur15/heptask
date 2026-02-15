@@ -55,33 +55,33 @@ export default async function Home() {
               <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-[var(--edge)] px-6 py-3 text-sm font-semibold text-white">
                 Post a Project <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
                 Find Work
               </Link>
-              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
                 Join as Company
               </Link>
             </div>
           </div>
           <div className="grid gap-4">
-            <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)]">
+            <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)]">
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Live Activity</p>
               <div className="mt-4 space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 dark:border-white/10 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold">Active Projects</p>
                     <p className="text-xs text-[var(--muted)]">Currently in execution</p>
                   </div>
                   <p className="text-2xl font-[var(--font-display)]">{activeProjects}</p>
                 </div>
-                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 dark:border-white/10 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold">Escrow Protected</p>
                     <p className="text-xs text-[var(--muted)]">Deposits in the platform</p>
                   </div>
                   <p className="text-2xl font-[var(--font-display)]">${totalEscrow.toFixed(0)}</p>
                 </div>
-                <div className="flex items-center justify-between rounded-2xl border border-black/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-2xl border border-black/5 dark:border-white/10 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold">Total Projects</p>
                     <p className="text-xs text-[var(--muted)]">Matched across the network</p>
@@ -90,7 +90,7 @@ export default async function Home() {
                 </div>
               </div>
             </div>
-            <div className="rounded-3xl border border-black/10 bg-[var(--edge)]/95 p-6 text-white">
+            <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-[var(--edge)]/95 p-6 text-white">
               <p className="text-xs uppercase tracking-[0.2em] text-white/60">Workspace Highlights</p>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-center justify-between">
@@ -119,7 +119,7 @@ export default async function Home() {
               { title: "Match & align", icon: Users, text: "Invite vetted talent, compare proposals, and align on milestones before work begins." },
               { title: "Deliver & release", icon: Wallet, text: "Track progress, approve milestones, and release escrow payments with audit trails." },
             ].map((item) => (
-              <div key={item.title} className="rounded-3xl border border-black/10 bg-white p-6">
+              <div key={item.title} className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-6">
                 <item.icon className="h-6 w-6 text-[var(--edge)]" />
                 <h3 className="mt-4 text-xl font-[var(--font-display)]">{item.title}</h3>
                 <p className="mt-2 text-sm text-[var(--muted)]">{item.text}</p>
@@ -131,7 +131,7 @@ export default async function Home() {
 
       <section className="px-4 pb-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Clients</p>
             <h2 className="mt-4 text-3xl font-[var(--font-display)]">Keep delivery visible, protected, and fast.</h2>
             <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
@@ -140,7 +140,7 @@ export default async function Home() {
               <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent-2)]" />Workspace updates keep stakeholders aligned with delivery health.</li>
             </ul>
           </div>
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Talent</p>
             <h2 className="mt-4 text-3xl font-[var(--font-display)]">Work with clarity, get paid with confidence.</h2>
             <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
@@ -154,21 +154,21 @@ export default async function Home() {
 
       <section className="px-4 pb-20">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
             <ShieldCheck className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">Safety & Escrow</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Funds stay protected until milestones are approved, with audit trails for every release.
             </p>
           </div>
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
             <Bot className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">AI Project Planning</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Convert loose ideas into milestone plans, timelines, and deliverable checklists.
             </p>
           </div>
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
             <Globe2 className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">Global Talent, Local Control</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
@@ -179,7 +179,7 @@ export default async function Home() {
       </section>
 
       <section className="px-4 pb-20">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Account Upgrades</p>
@@ -189,20 +189,20 @@ export default async function Home() {
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link href="/dashboard/billing" className="inline-flex items-center gap-2 rounded-full bg-[var(--edge)] px-6 py-3 text-sm font-semibold text-white">
-                  View Billing <ArrowRight className="h-4 w-4" />
+                  Billing & Plans <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link href="/pricing" className="inline-flex items-center gap-2 rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+                <Link href="/pricing" className="inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
                   Compare Plans
                 </Link>
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-black/10 p-4">
+              <div className="rounded-2xl border border-black/10 dark:border-white/10 p-4">
                 <p className="text-xs uppercase tracking-widest text-[var(--muted)]">Pro</p>
                 <p className="mt-2 text-2xl font-[var(--font-display)]">$49</p>
                 <p className="mt-2 text-xs text-[var(--muted)]">Priority placement and advanced analytics.</p>
               </div>
-              <div className="rounded-2xl border border-black/10 p-4">
+              <div className="rounded-2xl border border-black/10 dark:border-white/10 p-4">
                 <p className="text-xs uppercase tracking-widest text-[var(--muted)]">Enterprise</p>
                 <p className="mt-2 text-2xl font-[var(--font-display)]">$199</p>
                 <p className="mt-2 text-xs text-[var(--muted)]">Team controls, company workflows, and priority visibility.</p>
@@ -213,7 +213,7 @@ export default async function Home() {
       </section>
 
       <section className="px-4 pb-20">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Testimonials</p>
@@ -227,7 +227,7 @@ export default async function Home() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {stories.length > 0 ? (
               stories.map((story) => (
-                <div key={story.id} className="rounded-2xl border border-black/5 p-4">
+                <div key={story.id} className="rounded-2xl border border-black/5 dark:border-white/10 p-4">
                   <p className="text-sm font-semibold">{story.title}</p>
                   <p className="mt-2 text-xs text-[var(--muted)]">
                     Completed {formatDistanceToNow(story.updatedAt, { addSuffix: true })}
@@ -238,7 +238,7 @@ export default async function Home() {
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-black/10 p-8 text-sm text-[var(--muted)]">
+              <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 p-8 text-sm text-[var(--muted)]">
                 New projects are coming in daily. Check back soon.
               </div>
             )}
@@ -247,7 +247,7 @@ export default async function Home() {
       </section>
 
       <section className="px-4 pb-24">
-        <div className="mx-auto max-w-6xl rounded-[36px] border border-black/10 bg-[var(--edge)] p-10 text-white">
+        <div className="mx-auto max-w-6xl rounded-[36px] border border-black/10 dark:border-white/10 bg-[var(--edge)] p-10 text-white">
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <h2 className="text-3xl font-[var(--font-display)]">Ready to launch your next build?</h2>
@@ -256,7 +256,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
                 Post a Project
               </Link>
               <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white">

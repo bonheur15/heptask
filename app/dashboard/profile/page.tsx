@@ -177,25 +177,6 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Snapshot</CardTitle>
-              <CardDescription>Keep your account safe and verified.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-zinc-500">
-              <div className="flex items-center justify-between">
-                <span>Login email</span>
-                <span className="font-medium">{currentUser.email}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Account role</span>
-                <span className="font-medium capitalize">{currentUser.role}</span>
-              </div>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/profile">Review security settings</Link>
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
