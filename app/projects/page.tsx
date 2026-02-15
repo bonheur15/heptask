@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ShieldCheck, Sparkles } from "lucide-react";
+import { isCompanyExclusiveProject } from "@/lib/projects/visibility";
 
 type SearchParams = {
   q?: string;
@@ -66,6 +67,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
   });
 
   const filtered = projects.filter((item) => {
+    if (isCompanyExclusiveProject(item.companyExclusiveUntil)) {
+      return false;
+    }
     const combined = `${item.title} ${item.description}`;
     const category = getCategory(combined);
     const budgetValue = Number.parseFloat(item.budget ?? "0") || 0;

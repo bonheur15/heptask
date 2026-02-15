@@ -92,6 +92,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
     references: [escrow.userId],
   }),
   notifications: many(notification),
+  publicationPayments: many(projectPublicationPayment),
 }));
 
 export const project = pgTable("project", {
@@ -106,7 +107,30 @@ export const project = pgTable("project", {
   budget: text("budget"),
   deadline: timestamp("deadline"),
   plan: text("plan"), // JSON string or text for AI generated plan
+  publishedAt: timestamp("published_at"),
+  companyExclusiveUntil: timestamp("company_exclusive_until"),
   ndaRequired: boolean("nda_required").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const projectPublicationPayment = pgTable("project_publication_payment", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  txRef: text("tx_ref").notNull().unique(),
+  amount: text("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("processing"), // processing, paid, failed
+  projectPayload: text("project_payload").notNull(),
+  paymentLink: text("payment_link"),
+  flutterwaveTransactionId: text("flutterwave_transaction_id"),
+  projectId: text("project_id").references(() => project.id, { onDelete: "set null" }),
+  note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -300,7 +324,14 @@ export const withdrawalRequest = pgTable("withdrawal_request", {
     .references(() => user.id, { onDelete: "cascade" }),
   amount: text("amount").notNull(),
   method: text("method").notNull(), // bank, card, crypto
-  status: text("status").notNull().default("pending"), // pending, approved, rejected, paid
+  status: text("status").notNull().default("pending"), // pending, processing, approved, rejected, paid
+  currency: text("currency").default("USD"),
+  accountBank: text("account_bank"),
+  accountNumber: text("account_number"),
+  accountName: text("account_name"),
+  flutterwaveTransferId: text("flutterwave_transfer_id"),
+  flutterwaveReference: text("flutterwave_reference"),
+  processingError: text("processing_error"),
   note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -349,7 +380,19 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   payoutTransactions: many(payoutTransaction),
   companyAssignments: many(companyAssignment),
   companyPriorityInterests: many(companyPriorityInterest),
+  publicationPayments: many(projectPublicationPayment),
   disputes: many(dispute),
+}));
+
+export const projectPublicationPaymentRelations = relations(projectPublicationPayment, ({ one }) => ({
+  user: one(user, {
+    fields: [projectPublicationPayment.userId],
+    references: [user.id],
+  }),
+  project: one(project, {
+    fields: [projectPublicationPayment.projectId],
+    references: [project.id],
+  }),
 }));
 
 export const milestoneRelations = relations(milestone, ({ one }) => ({
