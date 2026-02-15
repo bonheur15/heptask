@@ -1,22 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CheckCircle2, FileLock2, Gavel, Layers, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, FileLock2, Gavel, Layers, ShieldCheck, Wallet, TimerReset, Users2 } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 const sections = [
   {
     title: "For Clients",
     items: [
-      "Define scope with AI-assisted interviews and milestone planning.",
-      "Invite talent or receive curated matches from Heptadev.",
-      "Fund escrow and approve milestones to release payments safely.",
+      "Convert rough ideas into full delivery plans with AI-guided interviews.",
+      "Review plan quality, budget feasibility, and timeline confidence before publishing.",
+      "Publish with paid verification, company-priority visibility, and protected escrow releases.",
     ],
   },
   {
-    title: "For Talents",
+    title: "For Talents & Companies",
     items: [
-      "Browse live projects and see the short public brief.",
-      "Submit proposals tied to milestone payouts and timelines.",
-      "Deliver work through the workspace and request approvals.",
+      "Discover priority-ready projects and apply with structured milestone proposals.",
+      "Sign NDA before accessing sensitive scope, files, and implementation details.",
+      "Work in a shared workspace where approvals, files, and payout actions stay traceable.",
     ],
   },
 ];
@@ -24,12 +24,16 @@ const sections = [
 export default function HowItWorksPage() {
   return (
     <MarketingShell>
-      <section className="px-4 py-20">
+      <section className="relative overflow-hidden px-4 py-20">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute left-10 top-8 h-44 w-44 rounded-full bg-[var(--accent)]/25 blur-3xl" />
+          <div className="absolute right-10 top-10 h-44 w-44 rounded-full bg-[var(--accent-2)]/25 blur-3xl" />
+        </div>
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Workflow</p>
-          <h1 className="mt-4 text-4xl font-[var(--font-display)]">How Heptadev works from kickoff to close-out.</h1>
-          <p className="mt-4 max-w-2xl text-sm text-[var(--muted)]">
-            Every project moves through a structured workflow that keeps scope, payments, and delivery aligned.
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Workflow Blueprint</p>
+          <h1 className="mt-4 text-4xl font-[var(--font-display)]">How Heptadev moves from idea to paid delivery.</h1>
+          <p className="mt-4 max-w-3xl text-sm text-[var(--muted)]">
+            The workflow is designed to reduce ambiguity, protect funds, and speed up matching between clients and execution teams.
           </p>
         </div>
       </section>
@@ -52,19 +56,43 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
+      <section className="px-4 pb-16">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 bg-white p-8">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-black/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Phase 1</p>
+              <p className="mt-2 text-xl font-[var(--font-display)]">Plan</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">AI-assisted project definition and feasibility checks.</p>
+            </div>
+            <div className="rounded-2xl border border-black/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Phase 2</p>
+              <p className="mt-2 text-xl font-[var(--font-display)]">Match</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Company-priority access, then public visibility after 24 hours.</p>
+            </div>
+            <div className="rounded-2xl border border-black/10 p-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Phase 3</p>
+              <p className="mt-2 text-xl font-[var(--font-display)]">Execute</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Milestone approvals, escrow releases, and payout tracking.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="px-4 pb-20">
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: Bot, title: "AI Project Builder", text: "Convert ideas into structured scope, milestones, and budget guidance." },
-            { icon: FileLock2, title: "NDA Protection", text: "Sensitive details unlock only after NDA execution." },
-            { icon: Wallet, title: "Escrow Payments", text: "Funds are protected until each milestone is approved." },
-            { icon: Layers, title: "Milestones", text: "Every stage has clear deliverables, due dates, and approvals." },
-            { icon: Gavel, title: "Dispute Resolution", text: "AI analysis plus human arbitration when things get stuck." },
-            { icon: ShieldCheck, title: "Maintenance Plans", text: "Optional post-launch support keeps products stable." },
+            { icon: Bot, title: "AI Builder", text: "Convert ideas into scope, milestones, and execution notes." },
+            { icon: FileLock2, title: "NDA Gate", text: "Protect sensitive details before full project access." },
+            { icon: Wallet, title: "Escrow", text: "Payment security with auditable releases and refund controls." },
+            { icon: Layers, title: "Milestones", text: "Track work in measurable approval checkpoints." },
+            { icon: Gavel, title: "Disputes", text: "AI + human review paths for high-stakes disagreements." },
+            { icon: ShieldCheck, title: "Trust Rules", text: "KYC/fraud controls where risk level demands it." },
+            { icon: TimerReset, title: "Priority Windows", text: "24-hour company-first visibility before public open." },
+            { icon: Users2, title: "Collaboration", text: "Shared workspaces for client, talent, and company teams." },
           ].map((item) => (
             <div key={item.title} className="rounded-3xl border border-black/10 bg-white p-6">
               <item.icon className="h-6 w-6 text-[var(--edge)]" />
-              <h3 className="mt-4 text-xl font-[var(--font-display)]">{item.title}</h3>
+              <h3 className="mt-4 text-lg font-[var(--font-display)]">{item.title}</h3>
               <p className="mt-2 text-sm text-[var(--muted)]">{item.text}</p>
             </div>
           ))}
@@ -75,8 +103,8 @@ export default function HowItWorksPage() {
         <div className="mx-auto max-w-6xl rounded-[32px] border border-black/10 bg-[var(--edge)] p-10 text-white">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-3xl font-[var(--font-display)]">Ready to map your next project?</h2>
-              <p className="mt-2 text-sm text-white/70">Start with the AI builder or explore open projects today.</p>
+              <h2 className="text-3xl font-[var(--font-display)]">Ready to start the workflow?</h2>
+              <p className="mt-2 text-sm text-white/70">Build your project brief or explore open opportunities.</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--edge)]">

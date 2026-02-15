@@ -129,5 +129,17 @@
     }
     body {
         @apply bg-background text-foreground;
+        background-image:
+            radial-gradient(circle at 8% 12%, color-mix(in oklch, var(--muted) 55%, transparent) 0%, transparent 35%),
+            radial-gradient(circle at 90% 0%, color-mix(in oklch, var(--muted) 45%, transparent) 0%, transparent 30%);
+        background-attachment: fixed;
+    }
+}
+
+@layer components {
+    .card {
+        box-shadow:
+            0 1px 1px rgba(0, 0, 0, 0.02),
+            0 8px 24px rgba(0, 0, 0, 0.03);
     }
 }
