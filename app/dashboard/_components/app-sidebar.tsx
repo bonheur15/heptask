@@ -17,6 +17,7 @@ import {
   Sparkles,
   Target,
   Users,
+  Crown,
 } from "lucide-react";
 
 import {
@@ -52,6 +53,7 @@ import { signOut } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { User as UserType } from "@/lib/types";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppSidebar({ user }: { user: UserType }) {
   const router = useRouter();
@@ -109,6 +111,8 @@ export function AppSidebar({ user }: { user: UserType }) {
     return pathname === url || pathname.startsWith(`${url}/`);
   };
 
+  const tierLabel = (user.accountTier ?? "free").toUpperCase();
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -121,7 +125,7 @@ export function AppSidebar({ user }: { user: UserType }) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Heptadev</span>
-                  <span className="truncate text-xs capitalize">{user.role}</span>
+                  <span className="truncate text-xs capitalize">{user.role} · {user.accountTier ?? "free"}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -223,11 +227,39 @@ export function AppSidebar({ user }: { user: UserType }) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Billing" isActive={isActive("/dashboard/billing")}>
+                  <Link href="/dashboard/billing">
+                    <CreditCard />
+                    <span>Billing & Plans</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="space-y-3">
+        <div className="rounded-xl border border-zinc-200/70 bg-zinc-50/70 p-2 dark:border-zinc-800 dark:bg-zinc-900/70">
+          <div className="mb-2 flex items-center justify-between rounded-lg border border-zinc-200/60 bg-white px-2 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
+              <Crown className="h-3.5 w-3.5 text-amber-500" />
+              {tierLabel}
+            </div>
+            <Link href="/dashboard/billing" className="text-[11px] font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50">
+              Manage
+            </Link>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              href="/dashboard/billing"
+              className="inline-flex h-8 flex-1 items-center justify-center rounded-md border border-zinc-200 bg-white text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              Billing & Plans
+            </Link>
+            <ThemeToggle />
+          </div>
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -271,29 +303,23 @@ export function AppSidebar({ user }: { user: UserType }) {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Upgrade to Pro
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+              <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile">
                       <BadgeCheck className="mr-2 h-4 w-4" />
-                      Account
+                      Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Billing
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/billing">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Billing & Plans
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile">
+                    <Link href="/dashboard/messages">
                       <Bell className="mr-2 h-4 w-4" />
-                      Notifications
+                      Messages
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
