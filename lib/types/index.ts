@@ -18,6 +18,7 @@ import {
   companyAutoApply,
   companyPriorityInterest,
   projectPublicationPayment,
+  accountUpgradePayment,
 } from "@/db/schema";
 import { ProjectPlan as AiProjectPlanType } from "@/lib/ai/prompts"; // Import AI Plan type
 
@@ -39,6 +40,7 @@ export type CompanyAssignment = InferSelectModel<typeof companyAssignment>;
 export type CompanyAutoApply = InferSelectModel<typeof companyAutoApply>;
 export type CompanyPriorityInterest = InferSelectModel<typeof companyPriorityInterest>;
 export type ProjectPublicationPayment = InferSelectModel<typeof projectPublicationPayment>;
+export type AccountUpgradePayment = InferSelectModel<typeof accountUpgradePayment>;
 export type AiAnalysis = {
   score: number;
   strengths: string[];
