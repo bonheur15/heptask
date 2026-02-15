@@ -13,6 +13,8 @@ export const user = pgTable("user", {
   location: text("location"),
   website: text("website"),
   companyName: text("company_name"),
+  accountTier: text("account_tier").notNull().default("free"), // free, pro, enterprise
+  accountTierStatus: text("account_tier_status").notNull().default("active"), // active, processing, requires_payment
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -93,6 +95,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   }),
   notifications: many(notification),
   publicationPayments: many(projectPublicationPayment),
+  accountUpgradePayments: many(accountUpgradePayment),
 }));
 
 export const project = pgTable("project", {
@@ -130,6 +133,26 @@ export const projectPublicationPayment = pgTable("project_publication_payment", 
   paymentLink: text("payment_link"),
   flutterwaveTransactionId: text("flutterwave_transaction_id"),
   projectId: text("project_id").references(() => project.id, { onDelete: "set null" }),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const accountUpgradePayment = pgTable("account_upgrade_payment", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  txRef: text("tx_ref").notNull().unique(),
+  targetTier: text("target_tier").notNull(), // pro, enterprise
+  amount: text("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("processing"), // processing, paid, failed
+  paymentLink: text("payment_link"),
+  flutterwaveTransactionId: text("flutterwave_transaction_id"),
   note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -392,6 +415,13 @@ export const projectPublicationPaymentRelations = relations(projectPublicationPa
   project: one(project, {
     fields: [projectPublicationPayment.projectId],
     references: [project.id],
+  }),
+}));
+
+export const accountUpgradePaymentRelations = relations(accountUpgradePayment, ({ one }) => ({
+  user: one(user, {
+    fields: [accountUpgradePayment.userId],
+    references: [user.id],
   }),
 }));
 

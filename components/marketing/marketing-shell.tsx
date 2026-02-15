@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Space_Grotesk, Manrope } from "next/font/google";
 
 const display = Space_Grotesk({
@@ -60,10 +61,16 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
             ))}
           </nav>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {session ? (
-              <Button asChild size="sm">
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/dashboard/billing">Upgrade</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+              </>
             ) : (
               <>
                 <Link href="/login" className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
