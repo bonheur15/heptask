@@ -20,6 +20,7 @@ import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PayAndPublishButton } from "./_components/pay-and-publish-button";
 
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -54,6 +55,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl">{project.description}</p>
         </div>
         <div className="flex flex-wrap gap-3">
+          {project.status === "draft" ? (
+            <PayAndPublishButton projectId={project.id} />
+          ) : null}
           <Button variant="outline" size="sm" className="gap-2">
             <MessageSquare className="h-4 w-4" /> Messages
           </Button>

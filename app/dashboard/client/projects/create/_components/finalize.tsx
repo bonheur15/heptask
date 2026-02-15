@@ -36,7 +36,12 @@ export function Finalize({ data, onBack }: FinalizeProps) {
         plan: data.plan,
         status,
       });
-      toast.success(status === "active" ? "Project published successfully!" : "Project saved as draft.");
+      if (status === "active" && "checkoutUrl" in result && result.checkoutUrl) {
+        toast.success("Redirecting to Flutterwave checkout...");
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
+      toast.success("Project saved as draft.");
       router.push("/dashboard/client");
     } catch (error) {
       toast.error("Failed to save project.");
@@ -110,7 +115,7 @@ export function Finalize({ data, onBack }: FinalizeProps) {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Send className="h-4 w-4" /> Publish Project
+                <Send className="h-4 w-4" /> Pay & Publish
               </>
             )}
           </Button>
