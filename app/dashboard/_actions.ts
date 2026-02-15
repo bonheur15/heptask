@@ -11,10 +11,12 @@ import {
   applicant,
   companyAssignment,
   companyTeam,
+  projectPublicationPayment,
 } from "@/db/schema";
 import { eq, and, desc, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { isCompanyExclusiveProject } from "@/lib/projects/visibility";
 
 export async function getTalentDashboardData() {
   const session = await auth.api.getSession({
@@ -96,7 +98,7 @@ export async function getAvailableJobs() {
 
   if (!session?.user) throw new Error("Unauthorized");
 
-  // Show projects that are draft or active but have NO talent assigned
+  // Show projects owned by other users and gate company-priority listings for 24h.
   const jobs = await db.query.project.findMany({
     where: and(
       ne(project.clientId, session.user.id)
@@ -105,7 +107,14 @@ export async function getAvailableJobs() {
     orderBy: desc(project.createdAt)
   });
 
-  return jobs;
+  const isCompany = session.user.role === "company";
+
+  return jobs.filter((job) => {
+    if (job.status !== "active") return false;
+    if (job.talentId) return false;
+    if (isCompany) return true;
+    return !isCompanyExclusiveProject(job.companyExclusiveUntil);
+  });
 }
 
 export async function getClientDashboardData() {
@@ -122,11 +131,13 @@ export async function getClientDashboardData() {
   // Fetch all data in parallel
   const [
     projects,
+    publicationPayments,
     userEscrow,
     notifications,
     disputes
   ] = await Promise.all([
     db.select().from(project).where(eq(project.clientId, userId)).orderBy(desc(project.createdAt)),
+    db.select().from(projectPublicationPayment).where(eq(projectPublicationPayment.userId, userId)).orderBy(desc(projectPublicationPayment.updatedAt)),
     db.select().from(escrow).where(eq(escrow.userId, userId)).limit(1),
     db.select().from(notification).where(eq(notification.userId, userId)).orderBy(desc(notification.createdAt)).limit(5),
     db.select().from(dispute)
@@ -146,6 +157,7 @@ export async function getClientDashboardData() {
     escrow: userEscrow[0] || { balance: "0", currency: "USD" },
     notifications,
     disputes: disputes.map(d => ({ ...d.dispute, project: d.project })),
+    publicationPayments,
   };
 }
 

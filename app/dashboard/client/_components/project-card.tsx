@@ -21,9 +21,10 @@ interface ProjectCardProps {
     budget: string | null;
     deadline: Date | null;
   };
+  publicationPaymentStatus?: string;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, publicationPaymentStatus }: ProjectCardProps) {
   const statusColors: Record<string, string> = {
     active:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -33,14 +34,32 @@ export function ProjectCard({ project }: ProjectCardProps) {
     completed:
       "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   };
+  const paymentStatusColors: Record<string, string> = {
+    processing: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    paid: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  };
+  const paymentStatusLabel: Record<string, string> = {
+    processing: "PAYMENT PENDING",
+    failed: "PAYMENT FAILED",
+    paid: "PAYMENT PAID",
+  };
+  const showPaymentBadge = project.status === "draft" && !!publicationPaymentStatus;
 
   return (
     <Card className="group transition-all hover:border-zinc-400 dark:hover:border-zinc-600">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="space-y-1">
-          <Badge className={statusColors[project.status] || ""}>
-            {project.status.toUpperCase()}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={statusColors[project.status] || ""}>
+              {project.status.toUpperCase()}
+            </Badge>
+            {showPaymentBadge ? (
+              <Badge className={paymentStatusColors[publicationPaymentStatus] || ""}>
+                {paymentStatusLabel[publicationPaymentStatus] || publicationPaymentStatus.toUpperCase()}
+              </Badge>
+            ) : null}
+          </div>
           <CardTitle className="text-lg font-bold group-hover:text-zinc-600 dark:group-hover:text-zinc-300">
             {project.title}
           </CardTitle>
