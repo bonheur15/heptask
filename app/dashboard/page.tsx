@@ -19,5 +19,9 @@ export default async function DashboardPage() {
     redirect("/company/dashboard");
   }
 
+  if (session.user.role === "super_admin") {
+    redirect("/admin");
+  }
+
   redirect("/dashboard/talent");
 }

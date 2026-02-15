@@ -15,6 +15,9 @@ export const user = pgTable("user", {
   companyName: text("company_name"),
   accountTier: text("account_tier").notNull().default("free"), // free, pro, enterprise
   accountTierStatus: text("account_tier_status").notNull().default("active"), // active, processing, requires_payment
+  isSuspended: boolean("is_suspended").notNull().default(false),
+  suspensionReason: text("suspension_reason"),
+  suspendedAt: timestamp("suspended_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -97,6 +100,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   publicationPayments: many(projectPublicationPayment),
   accountUpgradePayments: many(accountUpgradePayment),
   brainstormSessions: many(projectBrainstormSession),
+  adminAuditLogs: many(adminAuditLog),
 }));
 
 export const project = pgTable("project", {
@@ -196,6 +200,18 @@ export const accountUpgradePayment = pgTable("account_upgrade_payment", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+});
+
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: text("id").primaryKey(),
+  adminUserId: text("admin_user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  action: text("action").notNull(),
+  targetType: text("target_type").notNull(), // user, project, payment, withdrawal, system
+  targetId: text("target_id"),
+  metadata: text("metadata"), // JSON string
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const milestone = pgTable("milestone", {
@@ -458,6 +474,13 @@ export const projectPublicationPaymentRelations = relations(projectPublicationPa
 export const accountUpgradePaymentRelations = relations(accountUpgradePayment, ({ one }) => ({
   user: one(user, {
     fields: [accountUpgradePayment.userId],
+    references: [user.id],
+  }),
+}));
+
+export const adminAuditLogRelations = relations(adminAuditLog, ({ one }) => ({
+  adminUser: one(user, {
+    fields: [adminAuditLog.adminUserId],
     references: [user.id],
   }),
 }));

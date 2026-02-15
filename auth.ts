@@ -78,6 +78,18 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      isSuspended: {
+        type: "boolean",
+        required: false,
+      },
+      suspensionReason: {
+        type: "string",
+        required: false,
+      },
+      suspendedAt: {
+        type: "date",
+        required: false,
+      },
     },
   },
   socialProviders: {
