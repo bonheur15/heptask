@@ -21,6 +21,7 @@ import {
   accountUpgradePayment,
   projectBrainstormSession,
   projectBrainstormMessage,
+  adminAuditLog,
 } from "@/db/schema";
 import { ProjectPlan as AiProjectPlanType } from "@/lib/ai/prompts"; // Import AI Plan type
 
@@ -45,6 +46,7 @@ export type ProjectPublicationPayment = InferSelectModel<typeof projectPublicati
 export type AccountUpgradePayment = InferSelectModel<typeof accountUpgradePayment>;
 export type ProjectBrainstormSession = InferSelectModel<typeof projectBrainstormSession>;
 export type ProjectBrainstormMessage = InferSelectModel<typeof projectBrainstormMessage>;
+export type AdminAuditLog = InferSelectModel<typeof adminAuditLog>;
 export type AiAnalysis = {
   score: number;
   strengths: string[];
