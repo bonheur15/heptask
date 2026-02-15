@@ -32,20 +32,12 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
 
   return (
     <div
-      className={`${display.variable} ${body.variable} font-[var(--font-body)] text-[var(--ink)] bg-[var(--paper)] min-h-screen`}
-      style={{
-        ["--ink" as string]: "#111111",
-        ["--muted" as string]: "#5b5b5b",
-        ["--paper" as string]: "#fdfbf7",
-        ["--accent" as string]: "#ffb347",
-        ["--accent-2" as string]: "#5fbf9e",
-        ["--edge" as string]: "#1f2933",
-      }}
+      className={`${display.variable} ${body.variable} min-h-screen bg-[var(--paper)] font-[var(--font-body)] text-[var(--ink)] [--accent:#ffb347] [--accent-2:#5fbf9e] [--edge:#1f2933] [--ink:#111111] [--muted:#5b5b5b] [--paper:#fdfbf7] dark:[--edge:#dce6ef] dark:[--ink:#f4f7fb] dark:[--muted:#9aa7b5] dark:[--paper:#0b1016]`}
     >
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-[var(--paper)]/80 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-[var(--paper)]/80 backdrop-blur dark:border-white/10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white dark:bg-white dark:text-black">
               <span className="font-[var(--font-display)] text-xs">HD</span>
             </div>
             <div>
@@ -65,7 +57,7 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
             {session ? (
               <>
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/dashboard/billing">Upgrade</Link>
+                  <Link href="/dashboard/billing">Billing & Plans</Link>
                 </Button>
                 <Button asChild size="sm">
                   <Link href="/dashboard">Go to Dashboard</Link>
@@ -85,7 +77,7 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
         </div>
       </header>
       <main>{children}</main>
-      <footer className="border-t border-black/5">
+      <footer className="border-t border-black/5 dark:border-white/10">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 text-sm text-[var(--muted)] md:grid-cols-3">
           <div className="space-y-2">
             <p className="font-[var(--font-display)] text-base text-[var(--ink)]">Heptadev</p>
@@ -110,7 +102,7 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
             </div>
           </div>
         </div>
-        <div className="border-t border-black/5 py-4 text-center text-xs text-[var(--muted)]">
+        <div className="border-t border-black/5 py-4 text-center text-xs text-[var(--muted)] dark:border-white/10">
           © {new Date().getFullYear()} Heptadev. All rights reserved.
         </div>
       </footer>
