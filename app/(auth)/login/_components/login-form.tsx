@@ -46,11 +46,11 @@ export default function LoginForm({ statusMessage }: Props) {
     <div className="flex flex-col gap-6">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Sign in with email or continue with Google.
         </p>
         {statusMessage ? (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
             {statusMessage}
           </p>
         ) : null}
@@ -59,20 +59,20 @@ export default function LoginForm({ statusMessage }: Props) {
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-800"
       >
         Continue with Google
       </button>
 
-      <div className="flex items-center gap-3 text-xs text-zinc-400">
-        <span className="h-px flex-1 bg-zinc-200" />
+      <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
         <span>or</span>
-        <span className="h-px flex-1 bg-zinc-200" />
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       </div>
 
       <form onSubmit={handleSignIn} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-700" htmlFor="email">
+          <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300" htmlFor="email">
             Email
           </label>
           <input
@@ -83,12 +83,12 @@ export default function LoginForm({ statusMessage }: Props) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-500"
           />
         </div>
         <div className="space-y-2">
           <label
-            className="text-sm font-medium text-zinc-700"
+            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
             htmlFor="password"
           >
             Password
@@ -101,23 +101,23 @@ export default function LoginForm({ statusMessage }: Props) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-400 focus:outline-none"
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-500"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-500"
+          className="w-full rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           disabled={isLoading}
         >
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
-      <div className="flex items-center justify-between text-xs text-zinc-500">
-        <a href="/forgot-password" title="Coming soon" className="hover:text-zinc-700">
+      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+        <a href="/forgot-password" title="Coming soon" className="hover:text-zinc-700 dark:hover:text-zinc-200">
           Forgot password?
         </a>
-        <a href="/register" className="hover:text-zinc-700">
+        <a href="/register" className="hover:text-zinc-700 dark:hover:text-zinc-200">
           Create account
         </a>
       </div>

@@ -40,7 +40,8 @@ export default async function Home() {
         <div className="absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-8 h-64 w-64 -translate-x-1/2 rounded-full bg-[var(--accent)]/30 blur-[120px]" />
           <div className="absolute right-20 top-32 h-48 w-48 rounded-full bg-[var(--accent-2)]/30 blur-[120px]" />
-          <div className="absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(17,17,17,0.06),_transparent_60%)]" />
+          <div className="absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(17,17,17,0.06),_transparent_60%)] dark:hidden" />
+          <div className="absolute inset-x-0 top-0 hidden h-64 dark:block bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.10),_transparent_60%)]" />
         </div>
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
@@ -64,7 +65,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="grid gap-4">
-            <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)]">
+            <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.4)] backdrop-blur-sm">
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Live Activity</p>
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between rounded-2xl border border-black/5 dark:border-white/10 px-4 py-3">
@@ -119,7 +120,7 @@ export default async function Home() {
               { title: "Match & align", icon: Users, text: "Invite vetted talent, compare proposals, and align on milestones before work begins." },
               { title: "Deliver & release", icon: Wallet, text: "Track progress, approve milestones, and release escrow payments with audit trails." },
             ].map((item) => (
-              <div key={item.title} className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-6">
+              <div key={item.title} className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-6">
                 <item.icon className="h-6 w-6 text-[var(--edge)]" />
                 <h3 className="mt-4 text-xl font-[var(--font-display)]">{item.title}</h3>
                 <p className="mt-2 text-sm text-[var(--muted)]">{item.text}</p>
@@ -131,7 +132,7 @@ export default async function Home() {
 
       <section className="px-4 pb-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Clients</p>
             <h2 className="mt-4 text-3xl font-[var(--font-display)]">Keep delivery visible, protected, and fast.</h2>
             <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
@@ -140,7 +141,7 @@ export default async function Home() {
               <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--accent-2)]" />Workspace updates keep stakeholders aligned with delivery health.</li>
             </ul>
           </div>
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">For Talent</p>
             <h2 className="mt-4 text-3xl font-[var(--font-display)]">Work with clarity, get paid with confidence.</h2>
             <ul className="mt-6 space-y-3 text-sm text-[var(--muted)]">
@@ -154,21 +155,21 @@ export default async function Home() {
 
       <section className="px-4 pb-20">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
             <ShieldCheck className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">Safety & Escrow</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Funds stay protected until milestones are approved, with audit trails for every release.
             </p>
           </div>
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
             <Bot className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">AI Project Planning</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Convert loose ideas into milestone plans, timelines, and deliverable checklists.
             </p>
           </div>
-          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+          <div className="rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
             <Globe2 className="h-6 w-6 text-[var(--edge)]" />
             <h3 className="mt-4 text-xl font-[var(--font-display)]">Global Talent, Local Control</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
@@ -179,7 +180,7 @@ export default async function Home() {
       </section>
 
       <section className="px-4 pb-20">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Account Upgrades</p>
@@ -213,7 +214,7 @@ export default async function Home() {
       </section>
 
       <section className="px-4 pb-20">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 p-8">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900/80 p-8">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Testimonials</p>
@@ -256,7 +257,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 px-6 py-3 text-sm font-semibold text-[var(--edge)]">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--edge)] dark:text-zinc-900">
                 Post a Project
               </Link>
               <Link href="/register" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white">
