@@ -35,6 +35,14 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
   const completedMilestones = project.milestones.filter(m => m.status === "approved").length;
   const progress = project.milestones.length > 0 ? (completedMilestones / project.milestones.length) * 100 : 0;
+  const parsedBudget = Number.parseFloat(project.budget || "0");
+  const planData = JSON.parse(project.plan || "{}");
+  const checklistItems = [
+    { label: "Budget set", done: parsedBudget > 0 },
+    { label: "AI plan generated", done: Boolean(planData?.summary) },
+    { label: "NDA requirement enabled", done: project.ndaRequired },
+    { label: "Deadline configured", done: Boolean(project.deadline) },
+  ];
 
   return (
     <div className="space-y-8 pb-10">
@@ -113,6 +121,26 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         <TabsContent value="overview" className="mt-0 space-y-6">
            <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
+                {project.status === "draft" ? (
+                  <Card className="border-none bg-gradient-to-r from-zinc-900 to-zinc-700 text-white">
+                    <CardHeader>
+                      <CardTitle>Draft Publishing Readiness</CardTitle>
+                      <CardDescription className="text-white/70">
+                        Complete checklist and publish. After payment, this project is visible to companies first for 24 hours.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3 sm:grid-cols-2">
+                      {checklistItems.map((item) => (
+                        <div key={item.label} className="rounded-xl border border-white/20 bg-white/5 p-3 flex items-center justify-between">
+                          <p className="text-sm">{item.label}</p>
+                          <Badge variant={item.done ? "default" : "secondary"} className="text-[10px] uppercase">
+                            {item.done ? "done" : "missing"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ) : null}
                 <Card>
                   <CardHeader>
                     <CardTitle>AI Project Roadmap</CardTitle>
@@ -120,12 +148,12 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed italic">
-                      {JSON.parse(project.plan || "{}").summary}
+                      {planData.summary}
                     </p>
                     <div className="space-y-2 pt-4">
                       <h4 className="text-xs font-bold uppercase text-zinc-500">Key Deliverables</h4>
                       <div className="grid gap-2 sm:grid-cols-2">
-                        {JSON.parse(project.plan || "{}").deliverables?.map((d: string, i: number) => (
+                        {planData.deliverables?.map((d: string, i: number) => (
                           <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border text-xs">
                             <Sparkles className="h-3 w-3 text-zinc-400" />
                             {d}
